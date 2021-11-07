@@ -1,4 +1,4 @@
-from functools import update_wrapper
+from functools import update_wrapper, lru_cache
 
 
 class Count:
@@ -14,6 +14,7 @@ class Count:
         return result
 
 
+@lru_cache
 @Count
 def fib(n):
     if n < 2:
