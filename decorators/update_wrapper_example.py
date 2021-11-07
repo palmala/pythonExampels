@@ -14,7 +14,7 @@ class Count:
         return result
 
 
-@lru_cache
+@lru_cache(maxsize=None)
 @Count
 def fib(n):
     if n < 2:
