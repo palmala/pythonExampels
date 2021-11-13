@@ -12,7 +12,7 @@ if __name__ == "__main__":
     """)
     print("Inserting row")
     cur.execute("INSERT INTO test (string, number) VALUES ('one', {})".format(random.randint(0, 100)))
-    print("Commiting to db")
+    print("Committing to db")
     db.commit()
     for row in cur.execute("SELECT * FROM test"):
         print(row)
