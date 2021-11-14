@@ -9,9 +9,8 @@ if __name__ == "__main__":
 
     # converting query
     query_data = {
-        "Name" : "Me",
-        "Date" : "Secret",
-        "Place" : "Right here"
+        "Name": "Me",
+        "Date": "Secret",
+        "Place": "Right here"
     }
     print(urllib.parse.urlencode(query_data))
-
