@@ -12,6 +12,7 @@ def some_filter_function(x):
 def get_number():
     return random.randint(0, 10)
 
+
 if __name__ == "__main__":
     # iterate and stop at a certain element
     for num in iter(get_number, 5):
@@ -25,7 +26,7 @@ if __name__ == "__main__":
     # chaining iterables
     print(list(itertools.chain("ASDASD", range(5))))
 
-    #takewhile, dropwhile
+    # takewhile, dropwhile
     elements = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 20, 30, 40]
     print(list(itertools.dropwhile(some_filter_function, elements)))
     print(list(itertools.takewhile(some_filter_function, elements)))
