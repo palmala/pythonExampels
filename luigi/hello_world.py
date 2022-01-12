@@ -1,16 +1,16 @@
 import luigi
 import time
 
+
 class HelloTask(luigi.Task):
 
     def run(self):
-
         with open('hello.txt', 'w') as hello_file:
             hello_file.write('Hello')
             hello_file.close()
 
     def output(self):
-        return luigi.local_target('hello.txt')
+        return luigi.LocalTarget('hello.txt')
 
 
 class WorldTask(luigi.Task):
@@ -22,25 +22,26 @@ class WorldTask(luigi.Task):
             world_file.close()
 
     def output(self):
-        return luigi.local_target('world.txt')
+        return luigi.LocalTarget('world.txt')
 
-class HelloWorldTask(luigi.task):
+
+class HelloWorldTask(luigi.Task):
 
     def run(self):
         with open('hello.txt', 'r') as hello_file:
             hello = hello_file.read()
         with open('world.txt', 'r') as world_file:
             world = world_file.read()
-        with open('helloworld.txt', 'w') as helloworld_file:
-            content = "{} {}".format(hello, world)
-            helloworld_file.write(content)
-            helloworld_file.close()
-    
+        with open('hello_world.txt', 'w') as hello_world_file:
+            content = "{} {} 2".format(hello, world)
+            hello_world_file.write(content)
+            hello_world_file.close()
+
     def requires(self):
         return [HelloTask(), WorldTask()]
 
     def output(self):
-        return luigi.local_target('helloworld.txt')
+        return luigi.LocalTarget('hello_world.txt')
 
 
 if __name__ == "__main__":
