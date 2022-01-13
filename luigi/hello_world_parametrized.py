@@ -19,7 +19,6 @@ class HelloTask(luigi.Task):
     def run(self):
         with open(self.path, 'w') as hello_file:
             hello_file.write('Hello')
-            hello_file.close()
 
     def output(self):
         return luigi.LocalTarget(self.path)
@@ -35,7 +34,6 @@ class WorldTask(luigi.Task):
         time.sleep(10)
         with open(self.path, 'w') as world_file:
             world_file.write('World')
-            world_file.close()
 
     def output(self):
         return luigi.LocalTarget(self.path)
@@ -55,12 +53,11 @@ class HelloWorldTask(luigi.Task):
         with open(self.output().path, 'w') as output_file:
             content = "{} {}".format(hello, world)
             output_file.write(content)
-            output_file.close()
 
     def requires(self):
         return [
-            HelloTask('results/{}/hello.txt'.format(self.id)),
-            WorldTask('results/{}/hello.txt'.format(self.id))
+            HelloTask(path='results/{}/hello.txt'.format(self.id)),
+            WorldTask(path='results/{}/world.txt'.format(self.id))
         ]
 
     def output(self):
