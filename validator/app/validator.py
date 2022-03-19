@@ -20,7 +20,6 @@ def cli():
 @click.argument('path_to_tests', type=click.Path(exists=True), required=True)
 def get_tags(path_to_tests):
     all_tags = tags.get_tags_from_tests(path_to_tests, "md")
-    print(f"all tags: {all_tags}")
     for tag in all_tags:
         print(tag)
     sys.exit(len(all_tags) == 0)
@@ -46,6 +45,16 @@ def get_tests_for_tag(path_to_tests, tag):
         sys.exit(0)
     else:
         raise AttributeError(f"No tests for tag {tag}")
+
+@click.command(name='get_random_tests_per_tag')
+@click.argument('path_to_tests', type=click.Path(exists=True), required=True)
+@click.argument('number_of_tests', type=int, required=True)
+def get_random_tests_per_tag(path_to_tests, number_of_tests):
+    tests_per_tags = tags.get_tests_per_tags(path_to_tests, "md")
+    for tag in tests_per_tags:
+        print(f"{tag}:")
+        if 
+
 
 
 cli.add_command(get_tags)
