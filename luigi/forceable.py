@@ -17,7 +17,7 @@ class HelloTask(BaseTask):
 
     def run(self):
         with open('hello.txt', 'w') as hello_file:
-            hello_file.write('Hello')
+            hello_file.write('Hello ASDASD')
 
     def output(self):
         return luigi.LocalTarget('hello.txt')
