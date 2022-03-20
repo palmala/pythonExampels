@@ -72,9 +72,8 @@ def get_random_tests_per_tag(path_to_tests, number_of_tests, untagged, js):
     If number_of_tests is bigger than the number of available tests then all tests are returned
     :param path_to_tests:
     :param number_of_tests:
-    :param untagged:
-    :param js:
-    :return:
+    :param untagged: list untagged versions
+    :param js: json format
     """
     result = dict()
     tests_per_tags = tags.get_tests_per_tags(path_to_tests, "md")
@@ -95,8 +94,7 @@ def get_tests_per_tags(path_to_tests, js):
     """
     Query all tests per tags read from a test suite directory in *.md format
     :param path_to_tests:
-    :param js:
-    :return:
+    :param js: json format
     """
     result = tags.get_tests_per_tags(path_to_tests, "md")
     _print_dict(js, result)
