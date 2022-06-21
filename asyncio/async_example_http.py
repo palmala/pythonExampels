@@ -1,13 +1,15 @@
 import time
 import asyncio
-import random
+import aiohttp
 
 SOURCE = "http://127.0.0.1:5000/"
 
 
 async def gather_data():
-    await asyncio.sleep(1)
-    return random.randint(1, 10)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(SOURCE) as response:
+            result = await response.json()
+            return result["value"]
 
 
 async def generate_data(p):

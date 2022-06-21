@@ -1,13 +1,13 @@
 import time
-import random
+import requests
 import multiprocessing
 
 SOURCE = "http://127.0.0.1:5000/"
 
 
 def gather_data():
-    time.sleep(1)
-    return random.randint(1, 10)
+    response = requests.get(SOURCE)
+    return response.json()
 
 
 def generate_data(p):
