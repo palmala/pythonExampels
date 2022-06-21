@@ -10,8 +10,8 @@ def gather_data():
 
 
 def generate_data(p):
-    first_data = gather_data()["value"]
-    second_data = gather_data()["value"]
+    first_data = gather_data()
+    second_data = gather_data()
     return [p, first_data, second_data, f"{p}{first_data}{second_data}"]
 
 
