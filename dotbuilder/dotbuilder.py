@@ -90,4 +90,4 @@ def color_changed_nodes(*, mygraph, commits=None, commit_provider=None):
     for node in mygraph.get_node_list():
         node_name = node.get_name()
         if commits[node_name] > 0:
-            node.set('color', 'yellow')
+            node.set('color', 'orange')

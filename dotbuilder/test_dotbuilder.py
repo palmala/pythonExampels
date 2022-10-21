@@ -1,9 +1,5 @@
 import unittest
-from dotbuilder import dot_builder
-from dotbuilder import calculate_instability
-from dotbuilder import calculate_violations
-from dotbuilder import update_with_commits
-from dotbuilder import color_changed_nodes_per_instability
+from dotbuilder import *
 from dummy_commit_provider import DummyCommitProvider
 
 example = {
@@ -34,9 +30,13 @@ class TestDotBuild(unittest.TestCase):
         with open("test_commits.dot", "w") as resultdot:
             resultdot.write(str(subject))
 
+        color_changed_nodes(mygraph=subject, commits=commits)
+        with open("test_commits_colored_changed.dot", "w") as resultdot:
+            resultdot.write(str(subject))
+
         print(commits)
         color_changed_nodes_per_instability(mygraph=subject, instability=instability, commits=commits)
-        with open("test_commits_colored.dot", "w") as resultdot:
+        with open("test_commits_colored_instability.dot", "w") as resultdot:
             resultdot.write(str(subject))
 
 
