@@ -103,7 +103,7 @@ def _check_commits(commit_provider, commits):
     return commits
 
 
-def reset_edge_colors(*, mygraph):
+def reset_colors(*, mygraph):
     for edge in mygraph.get_edge_list():
         edge.set('color', 'black')
 
@@ -114,18 +114,28 @@ def reset_edge_colors(*, mygraph):
 
 def color_critical_paths(*, mygraph, commits=None, commit_provider=None):
     _check_commits(commits=commits, commit_provider=commit_provider)
-    processed = set()
     nodes = set(mygraph.get_node_list())
     edges_by_source = defaultdict(list)
-    edges_by_destination = defaultdict(list)
+
     for edge in mygraph.get_edge_list():
         edges_by_source[edge.get_source()].append(edge)
-        edges_by_destination[edge.get_destination()].append(edge)
-    while processed != nodes:
+    colored_prev = set()
+    colored = set()
+    for node in nodes:
+        node_name = node.get_name()
+        if commits[node_name] > 0:
+            node.set('style', 'filled')
+            node.set('fillcolor', 'orange')
+            colored.add(node_name)
+
+    while colored != colored_prev:
+        colored_prev = colored.copy()
         for node in nodes:
-            dependencies = [edge.get_destination() for edge in edges_by_source[node]]
-            if all([dependency in processed for dependency in dependencies]):
-                processed.add(node)
-                if any([commits[dependency] > 0 for dependency in edges_by_source[node]]):
-                    node.set('style', 'filled')
-                    node.set('fillcolor', 'orange')
+            node_name = node.get_name()
+            if node_name in colored:
+                continue
+            dependencies = [edge.get_destination() for edge in edges_by_source[node_name]]
+            if any([commits[dependency] > 0 for dependency in dependencies]):
+                node.set('style', 'filled')
+                node.set('fillcolor', 'orange')
+                colored.add(node_name)

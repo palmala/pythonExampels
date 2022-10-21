@@ -38,7 +38,7 @@ class TestDotBuild(unittest.TestCase):
         with open("test_commits_colored_instability.dot", "w") as resultdot:
             resultdot.write(str(subject))
 
-        reset_edge_colors(mygraph=subject)
+        reset_colors(mygraph=subject)
         with open("test_reset.dot", "w") as resultdot:
             resultdot.write(str(subject))
 
