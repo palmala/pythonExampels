@@ -63,31 +63,41 @@ def update_with_commits(mygraph, commit_provider):
 
 
 def color_changed_nodes_per_instability(*, mygraph, instability=None, commits=None, commit_provider=None):
-    if not instability:
-        instability = calculate_instability(mygraph)
-    if not commits:
-        if not commit_provider:
-            raise AttributeError("Need commits or CommitProvider!")
-        commits = update_with_commits(commit_provider)
+    instability = _check_instability(instability, mygraph)
 
     for node in mygraph.get_node_list():
         node_name = node.get_name()
         if commits[node_name] > 0:
             if instability[node_name] <= 0.5:
-                node.set('color', 'red')
+                node.set('style', 'filled')
+                node.set('fillcolor', 'red')
             elif instability[node_name] < 1.0:
-                node.set('color', 'orange')
+                node.set('style', 'filled')
+                node.set('fillcolor', 'orange')
             else:
-                node.set('color', 'green')
+                node.set('style', 'filled')
+                node.set('fillcolor', 'green')
+
+
+def _check_instability(instability, mygraph):
+    if not instability:
+        instability = calculate_instability(mygraph)
+    return instability
 
 
 def color_changed_nodes(*, mygraph, commits=None, commit_provider=None):
-    if not commits:
-        if not commit_provider:
-            raise AttributeError("Need commits or CommitProvider!")
-        commits = update_with_commits(commit_provider)
+    commits = _check_commits(commit_provider, commits)
 
     for node in mygraph.get_node_list():
         node_name = node.get_name()
         if commits[node_name] > 0:
-            node.set('color', 'orange')
+            node.set('style', 'filled')
+            node.set('fillcolor', 'orange')
+
+
+def _check_commits(commit_provider, commits):
+    if not commits:
+        if not commit_provider:
+            raise AttributeError("Need commits or CommitProvider!")
+        commits = update_with_commits(commit_provider)
+    return commits

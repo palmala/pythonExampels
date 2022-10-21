@@ -34,7 +34,6 @@ class TestDotBuild(unittest.TestCase):
         with open("test_commits_colored_changed.dot", "w") as resultdot:
             resultdot.write(str(subject))
 
-        print(commits)
         color_changed_nodes_per_instability(mygraph=subject, instability=instability, commits=commits)
         with open("test_commits_colored_instability.dot", "w") as resultdot:
             resultdot.write(str(subject))
