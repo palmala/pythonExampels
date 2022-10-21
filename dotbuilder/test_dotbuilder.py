@@ -38,6 +38,15 @@ class TestDotBuild(unittest.TestCase):
         with open("test_commits_colored_instability.dot", "w") as resultdot:
             resultdot.write(str(subject))
 
+        reset_edge_colors(mygraph=subject)
+        with open("test_reset.dot", "w") as resultdot:
+            resultdot.write(str(subject))
+
+        color_critical_paths(mygraph=subject, commits=commits)
+        with open("test_critical_path.dot", "w") as resultdot:
+            resultdot.write(str(subject))
+
+
 
 if __name__ == "__main__":
     unittest.main()

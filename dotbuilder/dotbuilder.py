@@ -101,3 +101,31 @@ def _check_commits(commit_provider, commits):
             raise AttributeError("Need commits or CommitProvider!")
         commits = update_with_commits(commit_provider)
     return commits
+
+
+def reset_edge_colors(*, mygraph):
+    for edge in mygraph.get_edge_list():
+        edge.set('color', 'black')
+
+    for node in mygraph.get_node_list():
+        node.set('style', 'filled')
+        node.set('fillcolor', 'white')
+
+
+def color_critical_paths(*, mygraph, commits=None, commit_provider=None):
+    _check_commits(commits=commits, commit_provider=commit_provider)
+    processed = set()
+    nodes = set(mygraph.get_node_list())
+    edges_by_source = defaultdict(list)
+    edges_by_destination = defaultdict(list)
+    for edge in mygraph.get_edge_list():
+        edges_by_source[edge.get_source()].append(edge)
+        edges_by_destination[edge.get_destination()].append(edge)
+    while processed != nodes:
+        for node in nodes:
+            dependencies = [edge.get_destination() for edge in edges_by_source[node]]
+            if all([dependency in processed for dependency in dependencies]):
+                processed.add(node)
+                if any([commits[dependency] > 0 for dependency in edges_by_source[node]]):
+                    node.set('style', 'filled')
+                    node.set('fillcolor', 'orange')
