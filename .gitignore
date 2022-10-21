@@ -3,4 +3,4 @@ databases/db-api.db
 databases/my_database.db
 rh.gif
 __pycache__
-dotbuilder/test.dot
+dotbuilder/test*.dot
