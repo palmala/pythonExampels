@@ -112,20 +112,6 @@ def reset_colors(*, mygraph):
         node.set('fillcolor', 'white')
 
 
-# def color_critical_paths(*, mygraph, commits=None, commit_provider=None):
-#     _check_commits(commits=commits, commit_provider=commit_provider)
-#     edges = set(mygraph.get_edge_list())
-#     edges_by_source = defaultdict(list)
-#
-#     for edge in edges:
-#         edges_by_source[edge.get_source()].append(edge)
-#
-#     colored_prev = set()
-#     colored = set()
-#
-#     while colored != colored_prev:
-#         colored_prev = colored.copy()
-
 def get_all_dependants(*, mygraph: pydot.Dot, node_name: str):
     candidates = [node for node in mygraph.get_node_list() if node.get_name().strip() == node_name]
     if candidates:

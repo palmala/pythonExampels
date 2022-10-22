@@ -54,7 +54,7 @@ class TestDotBuild(unittest.TestCase):
         filtered = restrict_projects(projects, ["componentA", "componentC"])
         print(filtered)
 
-    def test_get_subtree(self):
+    def test_get_all_dependants(self):
         projects = {
             'B': ['A'],
             'C': ['A'],
@@ -64,10 +64,10 @@ class TestDotBuild(unittest.TestCase):
             'G': ['C', 'B']
         }
         subject = dot_builder(projects)
-        with open("build/test_subtree_1.dot", "w") as resultdot:
+        with open("build/test_dependants_1.dot", "w") as resultdot:
             resultdot.write(str(subject))
         result = get_all_dependants(mygraph=subject, node_name="B")
-        with open("build/test_subtree_2.dot", "w") as resultdot:
+        with open("build/test_dependants_2.dot", "w") as resultdot:
             resultdot.write(str(result))
 
 
