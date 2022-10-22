@@ -1,0 +1,15 @@
+digraph my_graph {
+bgcolor=white;
+componentA [fillcolor=white, label="componentA\nI: 0.5\nC: 3", style=filled];
+componentB [fillcolor=white, label="componentB\nI: 0.333\nC: 0", style=filled];
+componentA -> componentB  [color=black];
+componentC [fillcolor=white, label="componentC\nI: 0.667\nC: 5", style=filled];
+componentB [fillcolor=white, label="componentB\nI: 0.333\nC: 0", style=filled];
+componentC -> componentB  [color=black];
+componentC [fillcolor=white, label="componentC\nI: 0.667\nC: 5", style=filled];
+componentA [fillcolor=white, label="componentA\nI: 0.5\nC: 3", style=filled];
+componentC -> componentA  [color=black];
+componentB [fillcolor=white, label="componentB\nI: 0.333\nC: 0", style=filled];
+componentC [fillcolor=white, label="componentC\nI: 0.667\nC: 5", style=filled];
+componentB -> componentC  [color=black];
+}

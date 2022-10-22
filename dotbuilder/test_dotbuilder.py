@@ -3,7 +3,6 @@ from dotbuilder import *
 from dummy_commit_provider import DummyCommitProvider
 from dummy_projects_provider import DummyProjectsProvider
 from projects_filter import restrict_projects
-
 import os
 import shutil
 
@@ -45,15 +44,31 @@ class TestDotBuild(unittest.TestCase):
         with open("test_reset.dot", "w") as resultdot:
             resultdot.write(str(subject))
 
-        color_critical_paths(mygraph=subject, commits=commits)
-        with open("build/7_test_critical_path.dot", "w") as resultdot:
-            resultdot.write(str(subject))
+        # color_critical_paths(mygraph=subject, commits=commits)
+        # with open("build/7_test_critical_path.dot", "w") as resultdot:
+        #     resultdot.write(str(subject))
 
     def test_projects_filter(self):
         projects_provider = DummyProjectsProvider()
         projects = projects_provider.get_projects()
         filtered = restrict_projects(projects, ["componentA", "componentC"])
         print(filtered)
+
+    def test_get_subtree(self):
+        projects = {
+            'B': ['A'],
+            'C': ['A'],
+            'D': ['B'],
+            'E': ['B'],
+            'F': ['C'],
+            'G': ['C']
+        }
+        subject = dot_builder(projects)
+        with open("build/test_subtree_1.dot", "w") as resultdot:
+            resultdot.write(str(subject))
+        result = get_all_dependants(mygraph=subject, node_name="A")
+        with open("build/test_subtree_2.dot", "w") as resultdot:
+            resultdot.write(str(result))
 
 
 if __name__ == "__main__":

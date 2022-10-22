@@ -112,30 +112,36 @@ def reset_colors(*, mygraph):
         node.set('fillcolor', 'white')
 
 
-def color_critical_paths(*, mygraph, commits=None, commit_provider=None):
-    _check_commits(commits=commits, commit_provider=commit_provider)
-    nodes = set(mygraph.get_node_list())
-    edges_by_source = defaultdict(list)
+# def color_critical_paths(*, mygraph, commits=None, commit_provider=None):
+#     _check_commits(commits=commits, commit_provider=commit_provider)
+#     edges = set(mygraph.get_edge_list())
+#     edges_by_source = defaultdict(list)
+#
+#     for edge in edges:
+#         edges_by_source[edge.get_source()].append(edge)
+#
+#     colored_prev = set()
+#     colored = set()
+#
+#     while colored != colored_prev:
+#         colored_prev = colored.copy()
 
-    for edge in mygraph.get_edge_list():
-        edges_by_source[edge.get_source()].append(edge)
-    colored_prev = set()
-    colored = set()
-    for node in nodes:
-        node_name = node.get_name()
-        if commits[node_name] > 0:
-            node.set('style', 'filled')
-            node.set('fillcolor', 'orange')
-            colored.add(node_name)
-
-    while colored != colored_prev:
-        colored_prev = colored.copy()
-        for node in nodes:
-            node_name = node.get_name()
-            if node_name in colored:
-                continue
-            dependencies = [edge.get_destination() for edge in edges_by_source[node_name]]
-            if any([commits[dependency] > 0 for dependency in dependencies]):
-                node.set('style', 'filled')
-                node.set('fillcolor', 'orange')
-                colored.add(node_name)
+def get_all_dependants(*, mygraph: pydot.Dot, node_name: str):
+    candidates = [node for node in mygraph.get_node_list() if node.get_name().strip() == node_name]
+    if candidates:
+        root = candidates[0]
+        edges_to_node = defaultdict(list)
+        for edge in mygraph.get_edge_list():
+            edges_to_node[edge.get_destination()].append(edge.get_source())
+        to_process = [node_name]
+        result = defaultdict(list)
+        result[node_name] = []
+        while to_process:
+            current = to_process.pop()
+            descendants = [desc for desc in edges_to_node[current]]
+            for descendant in descendants:
+                result[descendant].append(current)
+                to_process.append(descendant)
+        return dot_builder(result)
+    else:
+        raise AttributeError(f"No node found with name {node_name}!")
