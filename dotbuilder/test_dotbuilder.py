@@ -61,12 +61,12 @@ class TestDotBuild(unittest.TestCase):
             'D': ['B'],
             'E': ['B'],
             'F': ['C'],
-            'G': ['C']
+            'G': ['C', 'B']
         }
         subject = dot_builder(projects)
         with open("build/test_subtree_1.dot", "w") as resultdot:
             resultdot.write(str(subject))
-        result = get_all_dependants(mygraph=subject, node_name="A")
+        result = get_all_dependants(mygraph=subject, node_name="B")
         with open("build/test_subtree_2.dot", "w") as resultdot:
             resultdot.write(str(result))
 

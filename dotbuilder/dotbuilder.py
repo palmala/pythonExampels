@@ -129,19 +129,26 @@ def reset_colors(*, mygraph):
 def get_all_dependants(*, mygraph: pydot.Dot, node_name: str):
     candidates = [node for node in mygraph.get_node_list() if node.get_name().strip() == node_name]
     if candidates:
-        root = candidates[0]
         edges_to_node = defaultdict(list)
         for edge in mygraph.get_edge_list():
             edges_to_node[edge.get_destination()].append(edge.get_source())
         to_process = [node_name]
-        result = defaultdict(list)
-        result[node_name] = []
+        all_dependants_nodes = set(to_process)
+
         while to_process:
             current = to_process.pop()
             descendants = [desc for desc in edges_to_node[current]]
             for descendant in descendants:
-                result[descendant].append(current)
+                all_dependants_nodes.add(descendant)
                 to_process.append(descendant)
+
+        result = defaultdict(list)
+        for edge in mygraph.get_edge_list():
+            source = edge.get_source()
+            target = edge.get_destination()
+            if source in all_dependants_nodes and target in all_dependants_nodes:
+                result[source].append(target)
+
         return dot_builder(result)
     else:
         raise AttributeError(f"No node found with name {node_name}!")
