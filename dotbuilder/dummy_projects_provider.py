@@ -5,9 +5,12 @@ class DummyProjectsProvider(ProjectsProvider):
 
     def __init__(self):
         self._projects = {
-            'componentA': ['componentB'],
-            'componentC': ['componentB', 'componentA'],
-            'componentB': ['componentC']
+            'B': ['A', 'F'],
+            'C': ['A'],
+            'D': ['B'],
+            'E': ['B'],
+            'F': ['C'],
+            'G': ['C', 'B']
         }
 
     def get_projects(self):
