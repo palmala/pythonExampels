@@ -10,7 +10,8 @@ class DummyProjectsProvider(ProjectsProvider):
             'D': ['B'],
             'E': ['B'],
             'F': ['C'],
-            'G': ['C', 'B']
+            'G': ['C', 'B'],
+            'H': []
         }
 
     def get_projects(self):

@@ -9,6 +9,5 @@ class DummyCommitProvider(CommitProvider):
         self.DUMMY_VALUES['C'] = 4
         self.DUMMY_VALUES['E'] = 7
 
-
     def get_number_of_commits(self, component):
         return self.DUMMY_VALUES[component]
