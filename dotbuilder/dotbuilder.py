@@ -69,14 +69,11 @@ def color_changed_nodes_per_instability(*, mygraph, instability=None, commits=No
         node_name = node.get_name()
         if commits[node_name] > 0:
             if instability[node_name] <= 0.5:
-                node.set('style', 'filled')
-                node.set('fillcolor', 'red')
+                fill_node(node, 'red')
             elif instability[node_name] < 1.0:
-                node.set('style', 'filled')
-                node.set('fillcolor', 'orange')
+                fill_node(node, 'orange')
             else:
-                node.set('style', 'filled')
-                node.set('fillcolor', 'green')
+                fill_node(node, 'green')
 
 
 def _check_instability(instability, mygraph):
@@ -91,8 +88,7 @@ def color_changed_nodes(*, mygraph, commits=None, commit_provider=None):
     for node in mygraph.get_node_list():
         node_name = node.get_name()
         if commits[node_name] > 0:
-            node.set('style', 'filled')
-            node.set('fillcolor', 'orange')
+            fill_node(node, 'orange')
 
 
 def _check_commits(commit_provider, commits):
@@ -108,8 +104,12 @@ def reset_colors(*, mygraph):
         edge.set('color', 'black')
 
     for node in mygraph.get_node_list():
-        node.set('style', 'filled')
-        node.set('fillcolor', 'white')
+        fill_node(node)
+
+
+def fill_node(node, color):
+    node.set('style', 'filled')
+    node.set('fillcolor', color)
 
 
 def get_all_dependants(*, mygraph: pydot.Dot, node_name: str):
@@ -138,3 +138,49 @@ def get_all_dependants(*, mygraph: pydot.Dot, node_name: str):
         return dot_builder(result)
     else:
         raise AttributeError(f"No node found with name {node_name}!")
+
+
+def _detect_cycles(graph, start, end):
+    fringe = [(start, [])]
+    while fringe:
+        node, path = fringe.pop()
+        if path and node == end:
+            yield path
+            continue
+        for child in graph[node]:
+            if child in path:
+                continue
+            fringe.append((child, path + [child]))
+
+
+def detect_all_cycles(graph):
+    cycles_raw = [[node] + path[:-1] for node in graph for path in _detect_cycles(graph, node, node)]
+    cycles = set()
+    for c in cycles_raw:
+        while c[0] != min(c):
+            c.append(c.pop(0))
+        c.append(c[0])
+        cycles.add(tuple(c))
+    return cycles
+
+
+def classify_nodes_per_instability(graph: pydot.Dot, instability: list):
+    classification = [
+        (1, 1.1, 'green', 'NONE'),
+        (0.75, 1, 'yellow', 'LOW'),
+        (0.5, 0.75, 'orange', 'MEDIUM'),
+        (0.25, 0.5, 'red', 'HIGH'),
+        (0, 0.25, 'purple', 'CRITICAL')
+    ]
+    classified = defaultdict(list)
+    visited = []
+    for node in graph.get_node_list():
+        node_name = node.get_name()
+        for c in classification:
+            if c[0] <= instability[node_name] < c[1] and node_name not in visited:
+                fill_node(node, c[2])
+                classified[c[2]].append(node_name)
+                visited.append(node_name)
+                break
+
+    return classified
