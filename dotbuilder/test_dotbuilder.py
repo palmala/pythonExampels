@@ -46,6 +46,31 @@ class TestDotBuild(unittest.TestCase):
         self._write_to_file(str(subject), "main_1_original.dot")
         print(detect_all_cycles(subject))
 
+    def test_examples(self):
+        projects = {
+            'A': ['B'],
+            'B': ['C'],
+            'C': ['D'],
+            'D': ['A']
+        }
+        self.generate_violations_graph(projects, "examples_1_violations.dot")
+
+        projects['B'].append('D')
+        self.generate_violations_graph(projects, "examples_2_violations.dot")
+
+        projects = {
+            'A': ['B', 'C'],
+            'B': ['A', 'C'],
+            'C': ['A', 'B']
+        }
+        self.generate_violations_graph(projects, "examples_3_full.dot")
+
+    def generate_violations_graph(self, projects, filename="examples_1_violations.dot"):
+        subject = dot_builder(projects)
+        instability = calculate_instability(subject)
+        calculate_violations(subject, instability)
+        self._write_to_file(str(subject), filename)
+
     @classmethod
     def _write_to_file(cls, what: str, where: str):
         with open(f"{OUTPUT}/test_{where}", "w") as resultdot:
