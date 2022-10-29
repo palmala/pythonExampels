@@ -2,11 +2,16 @@ import pydot
 from collections import defaultdict
 from commit_provider import CommitProvider
 
+import logging
 
-def dot_builder(nodes):
+logger = logging.getLogger(__name__)
+
+
+def dot_builder(nodes, name):
     if not nodes:
         raise AttributeError("Nodes can't be empty!")
     graph = pydot.Dot("my_graph", graph_type="digraph", bgcolor="white")
+    graph.set_name(name)
 
     for source in nodes:
         for target in nodes[source]:
@@ -18,10 +23,12 @@ def dot_builder(nodes):
     return graph
 
 
-def calculate_instability(mygraph):
+def calculate_instability(mygraph: pydot.Dot):
+    logger.info(f"[{mygraph.get_name()}] Instability calculations start")
     instability = {}
     in_edges = defaultdict(int)
     out_edges = defaultdict(int)
+
     for edge in mygraph.get_edge_list():
         in_edges[edge.get_source()] += 1
         out_edges[edge.get_destination()] += 1
@@ -34,19 +41,25 @@ def calculate_instability(mygraph):
             instability[node_name] = round(float(in_edges[node_name]) / float(
                 in_edges[node_name] + out_edges[node_name]), 3)
         node.set("label", f"{node.get('label')}\nI: {instability[node_name]}".replace("\"", ""))
+
+    logger.debug(f"[{mygraph.get_name()}] Instability calculations end")
     return instability
 
 
-def calculate_violations(mygraph, instability=None):
-    if not instability:
-        instability = calculate_instability(mygraph)
+def calculate_violations(mygraph: pydot.Dot, instability=None):
+    instability = _check_instability(instability, mygraph)
+
+    logger.info(f"[Graph:{mygraph.get_name()}]: SDP violations calculations start.")
     violations = []
     for edge in mygraph.get_edge_list():
         source = edge.get_source()
         destination = edge.get_destination()
         if instability[source] < instability[destination]:
             edge.set('color', 'red')
+            logger.info(f"[Graph:{mygraph.get_name()}]: SDP violation found: {source} -> {destination}.")
             violations.append(f"{source}->{destination}")
+
+    logger.info(f"[Graph:{mygraph.get_name()}]: {len(violations)} SDP violation(s) found.")
     return violations
 
 
@@ -76,8 +89,9 @@ def color_changed_nodes_per_instability(*, mygraph, instability=None, commits=No
                 fill_node(node, 'green')
 
 
-def _check_instability(instability, mygraph):
+def _check_instability(instability, mygraph: pydot.Dot):
     if not instability:
+        logger.debug(f"[{mygraph.get_name()}] No instability values provided.")
         instability = calculate_instability(mygraph)
     return instability
 
@@ -99,20 +113,22 @@ def _check_commits(commit_provider, commits):
     return commits
 
 
-def reset_colors(*, mygraph):
+def reset_colors(*, mygraph: pydot.Dot):
+    logger.info(f"[{mygraph.get_name()}] Resetting colors.")
     for edge in mygraph.get_edge_list():
         edge.set('color', 'black')
 
     for node in mygraph.get_node_list():
-        fill_node(node)
+        fill_node(node=node, color="white")
 
 
-def fill_node(node, color):
+def fill_node(node: pydot.Node, color="white"):
     node.set('style', 'filled')
     node.set('fillcolor', color)
 
 
 def get_all_dependants(*, mygraph: pydot.Dot, node_name: str):
+    logger.info(f"[{mygraph.get_name()}] Getting all dependants sub-graph for node: {node_name}")
     candidates = [node for node in mygraph.get_node_list() if node.get_name().strip() == node_name]
     if candidates:
         edges_to_node = defaultdict(list)
@@ -135,7 +151,8 @@ def get_all_dependants(*, mygraph: pydot.Dot, node_name: str):
             if source in all_dependants_nodes and target in all_dependants_nodes:
                 result[source].append(target)
 
-        return dot_builder(result)
+        logger.info(f"[{mygraph.get_name()}] dependants of {node_name} sub-graph generated, size is {len(result)}")
+        return dot_builder(nodes=result, name=f"{node_name}_dependant")
     else:
         raise AttributeError(f"No node found with name {node_name}!")
 
@@ -154,6 +171,7 @@ def _detect_cycles(graph, start, end):
 
 
 def detect_all_cycles(graph):
+    logger.info(f"Detecting cycles for graph with {len(graph)} nodes.")
     cycles_raw = [[node] + path[:-1] for node in graph for path in _detect_cycles(graph, node, node)]
     cycles = set()
     for c in cycles_raw:
@@ -161,10 +179,16 @@ def detect_all_cycles(graph):
             c.append(c.pop(0))
         c.append(c[0])
         cycles.add(tuple(c))
+    logger.info(f"Number of cycles detected: {len(cycles)}.")
+    if cycles:
+        for cycle in cycles:
+            logging.info(f"Cycle: {cycle}.")
     return cycles
 
 
 def classify_nodes_per_instability(graph: pydot.Dot, instability: list):
+    logger.info(f"[{graph.get_name()}] Classifying nodes per instability.")
+    _check_instability(instability=instability, mygraph=graph)
     classification = [
         (1, 1.1, 'green', 'NONE'),
         (0.75, 1, 'yellow', 'LOW'),
@@ -182,5 +206,6 @@ def classify_nodes_per_instability(graph: pydot.Dot, instability: list):
                 classified[c[2]].append(node_name)
                 visited.append(node_name)
                 break
-
+    for c in classification:
+        logger.info(f"[{graph.get_name()}] Number of {c[3]} class nodes: {len(classified[c[3]])}")
     return classified

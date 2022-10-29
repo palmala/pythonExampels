@@ -6,15 +6,17 @@ import os
 import shutil
 
 OUTPUT = "build"
+import logging
 
 
 class TestDotBuild(unittest.TestCase):
+
     def test_parsing(self):
         shutil.rmtree(OUTPUT, ignore_errors=True)
         os.makedirs(OUTPUT)
 
         projects_provider = DummyProjectsProvider()
-        subject = dot_builder(projects_provider.get_projects())
+        subject = dot_builder(projects_provider.get_projects(), "tesT_main")
         self._write_to_file(str(subject), "main_1_original.dot")
 
         instability = calculate_instability(subject)
@@ -66,7 +68,7 @@ class TestDotBuild(unittest.TestCase):
         self.generate_violations_graph(projects, "examples_3_full.dot")
 
     def generate_violations_graph(self, projects, filename="examples_1_violations.dot"):
-        subject = dot_builder(projects)
+        subject = dot_builder(projects, filename)
         instability = calculate_instability(subject)
         calculate_violations(subject, instability)
         self._write_to_file(str(subject), filename)
