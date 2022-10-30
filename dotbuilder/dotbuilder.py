@@ -30,15 +30,15 @@ def calculate_instability(mygraph: pydot.Dot):
     out_edges = defaultdict(int)
 
     for edge in mygraph.get_edge_list():
-        in_edges[edge.get_source()] += 1
-        out_edges[edge.get_destination()] += 1
+        in_edges[edge.get_destination()] += 1
+        out_edges[edge.get_source()] += 1
 
     for node in mygraph.get_node_list():
         node_name = node.get_name()
         if in_edges[node_name] + out_edges[node_name] == 0:
-            instability[node_name] = 0
+            instability[node_name] = 1
         else:
-            instability[node_name] = round(float(in_edges[node_name]) / float(
+            instability[node_name] = round(float(out_edges[node_name]) / float(
                 in_edges[node_name] + out_edges[node_name]), 3)
         node.set("label", f"{node.get('label')}\nI: {instability[node_name]}".replace("\"", ""))
 
@@ -63,54 +63,11 @@ def calculate_violations(mygraph: pydot.Dot, instability=None):
     return violations
 
 
-def update_with_commits(mygraph, commit_provider):
-    if not isinstance(commit_provider, CommitProvider):
-        raise AttributeError("commit_provider is not an instance of CommitProvider!")
-
-    commits = {}
-    for node in mygraph.get_node_list():
-        node_name = node.get_name()
-        commits[node_name] = commit_provider.get_number_of_commits(node.get_name())
-        node.set('label', f"{node.get('label')}\nC: {commits[node_name]}".replace("\"", ""))
-    return commits
-
-
-def color_changed_nodes_per_instability(*, mygraph, instability=None, commits=None, commit_provider=None):
-    instability = _check_instability(instability, mygraph)
-
-    for node in mygraph.get_node_list():
-        node_name = node.get_name()
-        if commits[node_name] > 0:
-            if instability[node_name] <= 0.5:
-                fill_node(node, 'red')
-            elif instability[node_name] < 1.0:
-                fill_node(node, 'orange')
-            else:
-                fill_node(node, 'green')
-
-
 def _check_instability(instability, mygraph: pydot.Dot):
     if not instability:
         logger.debug(f"[{mygraph.get_name()}] No instability values provided.")
         instability = calculate_instability(mygraph)
     return instability
-
-
-def color_changed_nodes(*, mygraph, commits=None, commit_provider=None):
-    commits = _check_commits(commit_provider, commits)
-
-    for node in mygraph.get_node_list():
-        node_name = node.get_name()
-        if commits[node_name] > 0:
-            fill_node(node, 'orange')
-
-
-def _check_commits(commit_provider, commits):
-    if not commits:
-        if not commit_provider:
-            raise AttributeError("Need commits or CommitProvider!")
-        commits = update_with_commits(commit_provider)
-    return commits
 
 
 def reset_colors(*, mygraph: pydot.Dot):
@@ -203,9 +160,22 @@ def classify_nodes_per_instability(graph: pydot.Dot, instability: list):
         for c in classification:
             if c[0] <= instability[node_name] < c[1] and node_name not in visited:
                 fill_node(node, c[2])
-                classified[c[2]].append(node_name)
+                classified[c[3]].append(node_name)
                 visited.append(node_name)
                 break
     for c in classification:
         logger.info(f"[{graph.get_name()}] Number of {c[3]} class nodes: {len(classified[c[3]])}")
     return classified
+
+
+def generate_violations_graph(projects, filename="examples_1_violations.dot"):
+    subject = dot_builder(projects, filename)
+    instability = calculate_instability(subject)
+    violations = calculate_violations(subject, instability)
+    write_to_file(subject, filename)
+    return violations
+
+
+def write_to_file(what: pydot.Dot, filename: str):
+    with open(filename, "w") as resultdot:
+        resultdot.write(str(what))

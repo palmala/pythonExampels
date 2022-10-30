@@ -1,4 +1,7 @@
 import unittest
+
+import pydot
+
 from dotbuilder import *
 from dummy_commit_provider import DummyCommitProvider
 from dummy_projects_provider import DummyProjectsProvider
@@ -6,77 +9,86 @@ import os
 import shutil
 
 OUTPUT = "build"
-import logging
+
+PROJECTS = {
+    'A': ['B', 'D'],
+    'B': ['A'],
+    'C': ['A'],
+    'D': ['B', 'E'],
+    'E': []
+}
 
 
 class TestDotBuild(unittest.TestCase):
 
-    def test_parsing(self):
+    def setUp(self) -> None:
         shutil.rmtree(OUTPUT, ignore_errors=True)
         os.makedirs(OUTPUT)
 
+    def test_parsing(self):
+        # GIVEN
         projects_provider = DummyProjectsProvider()
-        subject = dot_builder(projects_provider.get_projects(), "tesT_main")
-        self._write_to_file(str(subject), "main_1_original.dot")
 
+        # WHEN
+        subject = dot_builder(projects_provider.get_projects(), "test_main")
+
+        # THEN
+        self.assertIsInstance(subject, pydot.Dot)
+
+    def test_instability(self):
+        # GIVEN
+        subject = dot_builder(PROJECTS, "test_instability")
+
+        # WHEN
         instability = calculate_instability(subject)
-        self._write_to_file(str(subject), "main_2_instability.dot")
 
+        # THEN
+        self.assertEqual(instability['A'], 0.5)
+        self.assertAlmostEqual(instability['B'], 0.333, places=3)
+        self.assertEqual(instability['C'], 1)
+        self.assertAlmostEqual(instability['D'], 0.667, places=3)
+        self.assertEqual(instability['E'], 0)
+
+    def test_violations(self):
+        # GIVEN
+        subject = dot_builder(PROJECTS, "test_violations")
+        instability = calculate_instability(subject)
+
+        # WHEN
         violations = calculate_violations(subject, instability)
-        self._write_to_file(str(subject), "main_3_violations.dot")
 
-        # commits = update_with_commits(subject, DummyCommitProvider())
-        # self._write_to_file(str(subject), "main_4_commits.dot")
-        #
-        # color_changed_nodes(mygraph=subject, commits=commits)
-        # self._write_to_file(str(subject), "main_5_color_changed.dot")
-        #
-        # color_changed_nodes_per_instability(mygraph=subject, instability=instability, commits=commits)
-        # self._write_to_file(str(subject), "main_6_color_changed_per_instability.dot")
-        #
-        # reset_colors(mygraph=subject)
-        # self._write_to_file(subject, "main_7_reset.dot")
+        # THEN
+        self.assertEqual(len(violations), 2)
+        self.assertIn("B->A", violations)
+        self.assertIn("A->D", violations)
 
-        classifications = classify_nodes_per_instability(subject, instability)
-        self._write_to_file(str(subject), "main_4_classified.dot")
-        for c in classifications:
-            print(c, classifications[c])
-
-    def test_detect_cycles(self):
-        subject = DummyProjectsProvider().get_projects()
-        # print(subject)
-        self._write_to_file(str(subject), "main_1_original.dot")
-        print(detect_all_cycles(subject))
-
-    def test_examples(self):
-        projects = {
-            'A': ['B'],
-            'B': ['C'],
-            'C': ['D'],
-            'D': ['A']
-        }
-        self.generate_violations_graph(projects, "examples_1_violations.dot")
-
-        projects['B'].append('D')
-        self.generate_violations_graph(projects, "examples_2_violations.dot")
-
-        projects = {
-            'A': ['B', 'C'],
-            'B': ['A', 'C'],
-            'C': ['A', 'B']
-        }
-        self.generate_violations_graph(projects, "examples_3_full.dot")
-
-    def generate_violations_graph(self, projects, filename="examples_1_violations.dot"):
-        subject = dot_builder(projects, filename)
+    def test_classifications(self):
+        # GIVEN
+        subject = dot_builder(PROJECTS, "test_classifications")
         instability = calculate_instability(subject)
-        calculate_violations(subject, instability)
-        self._write_to_file(str(subject), filename)
 
-    @classmethod
-    def _write_to_file(cls, what: str, where: str):
-        with open(f"{OUTPUT}/test_{where}", "w") as resultdot:
-            resultdot.write(str(what))
+        # WHEN
+        classifications = classify_nodes_per_instability(subject, instability)
+
+        # THEN
+        self.assertEqual(len(classifications), 5)
+        self.assertEqual(classifications['CRITICAL'], ['E'])
+        self.assertEqual(classifications['NONE'], ['C'])
+        self.assertEqual(classifications['LOW'], list())
+        self.assertListEqual(classifications['MEDIUM'], ['A', 'D'])
+        self.assertEqual(classifications['HIGH'], ['B'])
+
+    def test_cycles(self):
+        # GIVEN
+        projects = PROJECTS
+
+        # WHEN
+        cycles = detect_all_cycles(projects)
+
+        # THEN
+        self.assertEqual(len(cycles), 2)
+        self.assertIn(('A', 'B', 'A'), cycles)
+        self.assertIn(('A', 'D', 'B', 'A'), cycles)
 
 
 if __name__ == "__main__":
