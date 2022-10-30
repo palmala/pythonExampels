@@ -45,9 +45,7 @@ def calculate_instability(mygraph: Dot):
     return instability
 
 
-def calculate_violations(mygraph: Dot, instability=None):
-    instability = _check_instability(instability, mygraph)
-
+def calculate_violations(mygraph: Dot, instability: dict):
     logger.info(f"[Graph:{mygraph.get_name()}]: SDP violations calculations start.")
     violations = []
     for edge in mygraph.get_edge_list():
@@ -60,13 +58,6 @@ def calculate_violations(mygraph: Dot, instability=None):
 
     logger.info(f"[Graph:{mygraph.get_name()}]: {len(violations)} SDP violation(s) found.")
     return violations
-
-
-def _check_instability(instability, mygraph: Dot):
-    if not instability:
-        logger.debug(f"[{mygraph.get_name()}] No instability values provided.")
-        instability = calculate_instability(mygraph)
-    return instability
 
 
 def reset_colors(*, mygraph: Dot):
@@ -146,9 +137,8 @@ def detect_all_cycles(graph):
     return cycles
 
 
-def classify_nodes_per_instability(graph: Dot, instability: list):
+def classify_nodes_per_instability(graph: Dot, instability: dict):
     logger.info(f"[{graph.get_name()}] Classifying nodes per instability.")
-    _check_instability(instability=instability, mygraph=graph)
     classification = [
         (1, 1.1, 'green', 'NONE'),
         (0.75, 1, 'yellow', 'LOW'),
