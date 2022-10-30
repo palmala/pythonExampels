@@ -93,9 +93,13 @@ def get_all_dependants(*, mygraph: pydot.Dot, node_name: str):
             edges_to_node[edge.get_destination()].append(edge.get_source())
         to_process = [node_name]
         all_dependants_nodes = set(to_process)
+        visited = set()
 
         while to_process:
             current = to_process.pop()
+            if current in visited:
+                continue
+            visited.add(current)
             descendants = [desc for desc in edges_to_node[current]]
             for descendant in descendants:
                 all_dependants_nodes.add(descendant)
@@ -177,5 +181,5 @@ def generate_violations_graph(projects, filename="examples_1_violations.dot"):
 
 
 def write_to_file(what: pydot.Dot, filename: str):
-    with open(filename, "w") as resultdot:
-        resultdot.write(str(what))
+    with open(filename, "w") as outfile:
+        outfile.write(str(what))

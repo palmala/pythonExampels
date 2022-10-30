@@ -3,7 +3,6 @@ import unittest
 import pydot
 
 from dotbuilder import *
-from dummy_commit_provider import DummyCommitProvider
 from dummy_projects_provider import DummyProjectsProvider
 import os
 import shutil
@@ -89,6 +88,28 @@ class TestDotBuild(unittest.TestCase):
         self.assertEqual(len(cycles), 2)
         self.assertIn(('A', 'B', 'A'), cycles)
         self.assertIn(('A', 'D', 'B', 'A'), cycles)
+
+    def test_dependants(self):
+        # GIVEN
+        subject = dot_builder(PROJECTS, "test_dependants")
+
+        # WHEN
+        dependants = get_all_dependants(mygraph=subject, node_name="A")
+
+        # THEN
+        self.assertEqual(len(list(dependants.get_edge_list())), 5)
+        self.assertTrue(self._graph_has_edge(dependants, source_name='A', target_name='B'))
+        self.assertTrue(self._graph_has_edge(dependants, source_name='A', target_name='D'))
+        self.assertTrue(self._graph_has_edge(dependants, source_name='B', target_name='A'))
+        self.assertTrue(self._graph_has_edge(dependants, source_name='D', target_name='B'))
+        self.assertTrue(self._graph_has_edge(dependants, source_name='C', target_name='A'))
+
+    @staticmethod
+    def _graph_has_edge(graph: pydot.Dot, source_name: str, target_name: str):
+        for edge in graph.get_edge_list():
+            if edge.get_source() == source_name and edge.get_destination() == target_name:
+                return True
+        return False
 
 
 if __name__ == "__main__":
