@@ -1,7 +1,5 @@
 import unittest
 
-import pydot
-
 from dotbuilder import *
 from dummy_projects_provider import DummyProjectsProvider
 import os
@@ -32,7 +30,7 @@ class TestDotBuild(unittest.TestCase):
         subject = dot_builder(projects_provider.get_projects(), "test_main")
 
         # THEN
-        self.assertIsInstance(subject, pydot.Dot)
+        self.assertIsInstance(subject, Dot)
 
     def test_instability(self):
         # GIVEN
@@ -105,7 +103,7 @@ class TestDotBuild(unittest.TestCase):
         self.assertTrue(self._graph_has_edge(dependants, source_name='C', target_name='A'))
 
     @staticmethod
-    def _graph_has_edge(graph: pydot.Dot, source_name: str, target_name: str):
+    def _graph_has_edge(graph: Dot, source_name: str, target_name: str):
         for edge in graph.get_edge_list():
             if edge.get_source() == source_name and edge.get_destination() == target_name:
                 return True
