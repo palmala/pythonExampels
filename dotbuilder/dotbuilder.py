@@ -9,45 +9,59 @@ logger = logging.getLogger(__name__)
 def dot_builder(nodes, name):
     if not nodes:
         raise AttributeError("Nodes can't be empty!")
+
     graph = Dot("my_graph", graph_type="digraph", bgcolor="white")
     graph.set_name(name)
     added = set()
 
     for source in nodes:
-        if source not in added:
-            graph.add_node(Node(source, label=source))
-            added.add(source)
+        _add_node_to_graph(graph, added, source)
         for target in nodes[source]:
-            if target not in added:
-                graph.add_node(Node(target, label=target))
-                added.add(target)
+            _add_node_to_graph(graph, added, target)
             edge = Edge(source, target)
             graph.add_edge(edge)
 
     return graph
 
 
+def _add_node_to_graph(graph, added, source):
+    if source not in added:
+        graph.add_node(Node(source, label=source))
+        added.add(source)
+
+
 def calculate_instability(mygraph: Dot):
     logger.info(f"[{mygraph.get_name()}] Instability calculations start")
     instability = {}
+
+    in_edges, out_edges = _extract_edges(mygraph)
+
+    for node in mygraph.get_node_list():
+        node_name = node.get_name()
+        _evaluate_node(instability, node_name, in_edges, out_edges)
+        node.set("label", f"{node.get('label')}\nI: {instability[node_name]}".replace("\"", ""))
+
+    logger.debug(f"[{mygraph.get_name()}] Instability calculations end")
+    return instability
+
+
+def _evaluate_node(instability, node_name, in_edges, out_edges):
+    if in_edges[node_name] + out_edges[node_name] == 0:
+        instability[node_name] = 1
+    else:
+        instability[node_name] = round(float(out_edges[node_name]) / float(
+            in_edges[node_name] + out_edges[node_name]), 3)
+
+
+def _extract_edges(mygraph):
     in_edges = defaultdict(int)
     out_edges = defaultdict(int)
 
     for edge in mygraph.get_edge_list():
         in_edges[edge.get_destination()] += 1
         out_edges[edge.get_source()] += 1
-
-    for node in mygraph.get_node_list():
-        node_name = node.get_name()
-        if in_edges[node_name] + out_edges[node_name] == 0:
-            instability[node_name] = 1
-        else:
-            instability[node_name] = round(float(out_edges[node_name]) / float(
-                in_edges[node_name] + out_edges[node_name]), 3)
-        node.set("label", f"{node.get('label')}\nI: {instability[node_name]}".replace("\"", ""))
-
-    logger.debug(f"[{mygraph.get_name()}] Instability calculations end")
-    return instability
+        
+    return in_edges, out_edges
 
 
 def calculate_violations(mygraph: Dot, instability: dict):
