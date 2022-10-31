@@ -3,6 +3,9 @@ branch = True
 omit =
     */__init__.py
     test_*.py
+[report]
+exclude_lines =
+    @abstractmethod
 
 [html]
 directory = coverage_html_report

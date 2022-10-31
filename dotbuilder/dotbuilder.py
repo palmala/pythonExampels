@@ -11,11 +11,16 @@ def dot_builder(nodes, name):
         raise AttributeError("Nodes can't be empty!")
     graph = Dot("my_graph", graph_type="digraph", bgcolor="white")
     graph.set_name(name)
+    added = set()
 
     for source in nodes:
-        for target in nodes[source]:
+        if source not in added:
             graph.add_node(Node(source, label=source))
-            graph.add_node(Node(target, label=target))
+            added.add(source)
+        for target in nodes[source]:
+            if target not in added:
+                graph.add_node(Node(target, label=target))
+                added.add(target)
             edge = Edge(source, target)
             graph.add_edge(edge)
 
@@ -58,15 +63,6 @@ def calculate_violations(mygraph: Dot, instability: dict):
 
     logger.info(f"[Graph:{mygraph.get_name()}]: {len(violations)} SDP violation(s) found.")
     return violations
-
-
-def reset_colors(*, mygraph: Dot):
-    logger.info(f"[{mygraph.get_name()}] Resetting colors.")
-    for edge in mygraph.get_edge_list():
-        edge.set('color', 'black')
-
-    for node in mygraph.get_node_list():
-        fill_node(node=node, color="white")
 
 
 def fill_node(node: Node, color="white"):
@@ -159,14 +155,6 @@ def classify_nodes_per_instability(graph: Dot, instability: dict):
     for c in classification:
         logger.info(f"[{graph.get_name()}] Number of {c[3]} class nodes: {len(classified[c[3]])}")
     return classified
-
-
-def generate_violations_graph(projects, filename="examples_1_violations.dot"):
-    subject = dot_builder(projects, filename)
-    instability = calculate_instability(subject)
-    violations = calculate_violations(subject, instability)
-    write_to_file(subject, filename)
-    return violations
 
 
 def write_to_file(what: Dot, filename: str):
