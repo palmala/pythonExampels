@@ -38,19 +38,22 @@ def calculate_instability(mygraph: Dot):
 
     for node in mygraph.get_node_list():
         node_name = node.get_name()
-        _evaluate_node(instability, node_name, in_edges, out_edges)
+        instability[node_name] = _evaluate_node(node_name, in_edges, out_edges)
         node.set("label", f"{node.get('label')}\nI: {instability[node_name]}".replace("\"", ""))
 
     logger.debug(f"[{mygraph.get_name()}] Instability calculations end")
     return instability
 
 
-def _evaluate_node(instability, node_name, in_edges, out_edges):
+def _evaluate_node(node_name, in_edges, out_edges):
     if in_edges[node_name] + out_edges[node_name] == 0:
-        instability[node_name] = 1
+        instability = 1
     else:
-        instability[node_name] = round(float(out_edges[node_name]) / float(
-            in_edges[node_name] + out_edges[node_name]), 3)
+        instability = round(
+            float(out_edges[node_name]) /
+            float(in_edges[node_name] + out_edges[node_name])
+            , 3)
+    return instability
 
 
 def _extract_edges(mygraph):
@@ -60,16 +63,18 @@ def _extract_edges(mygraph):
     for edge in mygraph.get_edge_list():
         in_edges[edge.get_destination()] += 1
         out_edges[edge.get_source()] += 1
-        
+
     return in_edges, out_edges
 
 
 def calculate_violations(mygraph: Dot, instability: dict):
     logger.info(f"[Graph:{mygraph.get_name()}]: SDP violations calculations start.")
     violations = []
+
     for edge in mygraph.get_edge_list():
         source = edge.get_source()
         destination = edge.get_destination()
+
         if instability[source] < instability[destination]:
             edge.set('color', 'red')
             logger.info(f"[Graph:{mygraph.get_name()}]: SDP violation found: {source} -> {destination}.")
@@ -86,11 +91,13 @@ def fill_node(node: Node, color="white"):
 
 def get_all_dependants(*, mygraph: Dot, node_name: str):
     logger.info(f"[{mygraph.get_name()}] Getting all dependants sub-graph for node: {node_name}")
+
     candidates = [node for node in mygraph.get_node_list() if node.get_name().strip() == node_name]
     if candidates:
         edges_to_node = defaultdict(list)
-        for edge in mygraph.get_edge_list():
-            edges_to_node[edge.get_destination()].append(edge.get_source())
+
+        edges_to_node = _get_edges_to_node(mygraph)
+
         to_process = [node_name]
         all_dependants_nodes = set(to_process)
         visited = set()
@@ -100,22 +107,35 @@ def get_all_dependants(*, mygraph: Dot, node_name: str):
             if current in visited:
                 continue
             visited.add(current)
-            descendants = [desc for desc in edges_to_node[current]]
-            for descendant in descendants:
-                all_dependants_nodes.add(descendant)
-                to_process.append(descendant)
 
-        result = defaultdict(list)
-        for edge in mygraph.get_edge_list():
-            source = edge.get_source()
-            target = edge.get_destination()
-            if source in all_dependants_nodes and target in all_dependants_nodes:
-                result[source].append(target)
+            dependants = [desc for desc in edges_to_node[current]]
+            for dependant in dependants:
+                all_dependants_nodes.add(dependant)
+                to_process.append(dependant)
+
+        result = _restrict_graph_to_nodes(all_dependants_nodes, mygraph)
 
         logger.info(f"[{mygraph.get_name()}] dependants of {node_name} sub-graph generated, size is {len(result)}")
-        return dot_builder(nodes=result, name=f"{node_name}_dependant")
+        return dot_builder(nodes=result, name=f"{node_name}_dependants")
     else:
         raise AttributeError(f"No node found with name {node_name}!")
+
+
+def _restrict_graph_to_nodes(all_dependants_nodes, mygraph: Dot):
+    result = defaultdict(list)
+    for edge in mygraph.get_edge_list():
+        source = edge.get_source()
+        target = edge.get_destination()
+        if source in all_dependants_nodes and target in all_dependants_nodes:
+            result[source].append(target)
+    return result
+
+
+def _get_edges_to_node(mygraph: Dot):
+    edges_to_node = defaultdict(list)
+    for edge in mygraph.get_edge_list():
+        edges_to_node[edge.get_destination()].append(edge.get_source())
+    return edges_to_node
 
 
 def _detect_cycles(graph, start, end):
