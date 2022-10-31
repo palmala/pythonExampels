@@ -89,10 +89,10 @@ class TestDotBuild(unittest.TestCase):
 
     def test_cycles(self):
         # GIVEN
-        projects = PROJECTS
+        subject = dot_builder(PROJECTS, "cycles")
 
         # WHEN
-        cycles = detect_all_cycles(projects)
+        cycles = detect_all_cycles(subject)
 
         # THEN
         self.assertEqual(len(cycles), 2)
@@ -105,9 +105,10 @@ class TestDotBuild(unittest.TestCase):
             'B': [],
             'A': ['B']
         }
+        subject = dot_builder(projects, "no_cycles")
 
         # WHEN
-        cycles = detect_all_cycles(projects)
+        cycles = detect_all_cycles(subject)
 
         # THEN
         self.assertEqual(len(cycles), 0)

@@ -10,18 +10,30 @@ def dot_builder(nodes, name):
     if not nodes:
         raise AttributeError("Nodes can't be empty!")
 
-    graph = Dot("my_graph", graph_type="digraph", bgcolor="white")
-    graph.set_name(name)
     added = set()
 
+    graph = Dot("my_graph", graph_type="digraph", bgcolor="white")
+    graph.set_name(name)
+    _fill_graph_from_dict(graph, nodes, added)
+
+    logging.info(f"[Graph:{name}] Number of nodes: {len(graph.get_node_list())}")
+    logging.info(f"[Graph:{name}] Number of edges: {len(graph.get_edge_list())}")
+
+    in_edges, out_edges = _extract_edges(graph)
+    orphan_nodes = [node for node in added if in_edges[node] == 0 and out_edges[node] == 0]
+    logging.info(
+        f"[Graph:{name}] Number of orphan nodes: {len(orphan_nodes)}")
+    logging.info(f"[Graph:{name}] Number of nodes with edges: {len(added) - len(orphan_nodes)}")
+    return graph
+
+
+def _fill_graph_from_dict(graph, nodes, added):
     for source in nodes:
         _add_node_to_graph(graph, added, source)
         for target in nodes[source]:
             _add_node_to_graph(graph, added, target)
             edge = Edge(source, target)
             graph.add_edge(edge)
-
-    return graph
 
 
 def _add_node_to_graph(graph, added, source):
@@ -31,7 +43,7 @@ def _add_node_to_graph(graph, added, source):
 
 
 def calculate_instability(mygraph: Dot):
-    logger.info(f"[{mygraph.get_name()}] Instability calculations start")
+    logger.debug(f"[Graph:{mygraph.get_name()}] Instability calculations start")
     instability = {}
 
     in_edges, out_edges = _extract_edges(mygraph)
@@ -41,7 +53,7 @@ def calculate_instability(mygraph: Dot):
         instability[node_name] = _evaluate_node(node_name, in_edges, out_edges)
         node.set("label", f"{node.get('label')}\nI: {instability[node_name]}".replace("\"", ""))
 
-    logger.debug(f"[{mygraph.get_name()}] Instability calculations end")
+    logger.debug(f"[Graph:{mygraph.get_name()}] Instability calculations end")
     return instability
 
 
@@ -68,7 +80,7 @@ def _extract_edges(mygraph):
 
 
 def calculate_violations(mygraph: Dot, instability: dict):
-    logger.info(f"[Graph:{mygraph.get_name()}]: SDP violations calculations start.")
+    logger.debug(f"[Graph:{mygraph.get_name()}]: SDP violations calculations start.")
     violations = []
 
     for edge in mygraph.get_edge_list():
@@ -77,10 +89,11 @@ def calculate_violations(mygraph: Dot, instability: dict):
 
         if instability[source] < instability[destination]:
             edge.set('color', 'red')
-            logger.info(f"[Graph:{mygraph.get_name()}]: SDP violation found: {source} -> {destination}.")
             violations.append(f"{source}->{destination}")
 
     logger.info(f"[Graph:{mygraph.get_name()}]: {len(violations)} SDP violation(s) found.")
+    for violation in violations:
+        logger.info(f"[Graph:{mygraph.get_name()}]: SDP violation found: {violation}")
     return violations
 
 
@@ -90,7 +103,7 @@ def fill_node(node: Node, color="white"):
 
 
 def get_all_dependants(*, mygraph: Dot, node_name: str):
-    logger.info(f"[{mygraph.get_name()}] Getting all dependants sub-graph for node: {node_name}")
+    logger.info(f"[Graph:{mygraph.get_name()}] Getting all dependants sub-graph for node: {node_name}")
 
     candidates = [node for node in mygraph.get_node_list() if node.get_name().strip() == node_name]
     if candidates:
@@ -115,7 +128,8 @@ def get_all_dependants(*, mygraph: Dot, node_name: str):
 
         result = _restrict_graph_to_nodes(all_dependants_nodes, mygraph)
 
-        logger.info(f"[{mygraph.get_name()}] dependants of {node_name} sub-graph generated, size is {len(result)}")
+        logger.info(
+            f"[Graph:{mygraph.get_name()}] generating dependants of {node_name} sub-graph")
         return dot_builder(nodes=result, name=f"{node_name}_dependants")
     else:
         raise AttributeError(f"No node found with name {node_name}!")
@@ -138,7 +152,7 @@ def _get_edges_to_node(mygraph: Dot):
     return edges_to_node
 
 
-def _detect_cycles(graph, start, end):
+def _generate_paths(graph, start, end):
     fringe = [(start, [])]
     while fringe:
         node, path = fringe.pop()
@@ -151,24 +165,37 @@ def _detect_cycles(graph, start, end):
             fringe.append((child, path + [child]))
 
 
-def detect_all_cycles(graph):
-    logger.info(f"Detecting cycles for graph with {len(graph)} nodes.")
-    cycles_raw = [[node] + path[:-1] for node in graph for path in _detect_cycles(graph, node, node)]
+def detect_all_cycles(graph: Dot):
+    logger.debug(f"[Graph:{graph.get_name()}] Converting graph to dict")
+
+    graph_dict = _convert_dot_to_dict(graph)
+
+    logger.info(f"[Graph:{graph.get_name()}] Detecting cycles")
+    cycles_raw = [[node] + path[:-1] for node in graph_dict for path in _generate_paths(graph_dict, node, node)]
     cycles = set()
     for c in cycles_raw:
         while c[0] != min(c):
             c.append(c.pop(0))
         c.append(c[0])
         cycles.add(tuple(c))
-    logger.info(f"Number of cycles detected: {len(cycles)}.")
+    logger.info(f"[Graph:{graph.get_name()}] Number of cycles detected: {len(cycles)}.")
     if cycles:
         for cycle in cycles:
-            logging.info(f"Cycle: {cycle}.")
+            logger.info(f"[Graph:{graph.get_name()}] Cycle: {cycle}.")
     return cycles
 
 
+def _convert_dot_to_dict(graph):
+    graph_dict = dict()
+    for node in graph.get_node_list():
+        graph_dict[node.get_name()] = list()
+    for edge in graph.get_edge_list():
+        graph_dict[edge.get_source()].append(edge.get_destination())
+    return graph_dict
+
+
 def classify_nodes_per_instability(graph: Dot, instability: dict):
-    logger.info(f"[{graph.get_name()}] Classifying nodes per instability.")
+    logger.info(f"[Graph:{graph.get_name()}] Classifying nodes per instability.")
     classification = [
         (1, 1.1, 'green', 'NONE'),
         (0.75, 1, 'yellow', 'LOW'),
@@ -187,7 +214,7 @@ def classify_nodes_per_instability(graph: Dot, instability: dict):
                 visited.append(node_name)
                 break
     for c in classification:
-        logger.info(f"[{graph.get_name()}] Number of {c[3]} class nodes: {len(classified[c[3]])}")
+        logger.info(f"[Graph:{graph.get_name()}] Number of {c[3]} class nodes: {len(classified[c[3]])}")
     return classified
 
 
