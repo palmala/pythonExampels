@@ -15,14 +15,17 @@ if __name__ == "__main__":
 
     logging.info("Getting projects")
     projects = DummyProjectsProvider().get_projects()
+
     logging.info("Creating base graph")
     subject = dot_builder(projects, "base_projects")
     write_to_file(subject, FILENAMES.format(basedir=OUTPUT, filename="base_projects"))
+
     instability = calculate_instability(subject)
     calculate_violations(subject, instability)
     write_to_file(subject, FILENAMES.format(basedir=OUTPUT, filename="base_projects_violations"))
 
     detect_all_cycles(subject)
+
     categories = classify_nodes_per_instability(subject, instability)
 
     dependants = get_all_dependants(mygraph=subject, node_name="A")
