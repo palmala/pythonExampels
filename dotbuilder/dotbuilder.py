@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def dot_builder(nodes, name):
+def dot_builder(nodes: dict, name: str, ranksep: int = "2"):
     if not nodes:
         raise AttributeError("Nodes can't be empty!")
 
@@ -14,17 +14,38 @@ def dot_builder(nodes, name):
 
     graph = Dot("my_graph", graph_type="digraph", bgcolor="white")
     graph.set_name(name)
+    graph.set('ranksep', ranksep)
     _fill_graph_from_dict(graph, nodes, added)
+    generate_statistics(graph)
 
-    logging.info(f"[Graph:{name}] Number of nodes: {len(graph.get_node_list())}")
-    logging.info(f"[Graph:{name}] Number of edges: {len(graph.get_edge_list())}")
+    return graph
+
+
+def generate_statistics(graph: Dot):
+    logging.info(f"[Graph:{graph.get_name()}] Number of projects: {len(graph.get_node_list())}")
+    logging.info(f"[Graph:{graph.get_name()}] Number of dependencies: {len(graph.get_edge_list())}")
 
     in_edges, out_edges = _extract_edges(graph)
-    orphan_nodes = [node for node in added if in_edges[node] == 0 and out_edges[node] == 0]
+    node_names = [node.get_name() for node in graph.get_node_list()]
+    orphan_nodes = [node for node in node_names if in_edges[node] == 0 and out_edges[node] == 0]
     logging.info(
-        f"[Graph:{name}] Number of orphan nodes: {len(orphan_nodes)}")
-    logging.info(f"[Graph:{name}] Number of nodes with edges: {len(added) - len(orphan_nodes)}")
-    return graph
+        f"[Graph:{graph.get_name()}] Projects with no visible dependencies: {len(orphan_nodes)}")
+    logging.info(
+        f"[Graph:{graph.get_name()}] Projects with dependency connection: {len(node_names) - len(orphan_nodes)}")
+
+    node_with_in_edges_only = [node for node in node_names if in_edges[node] and not out_edges[node]]
+    logging.info(f"[Graph:{graph.get_name()}] Projects with dependants only: {len(node_with_in_edges_only)}")
+
+    node_with_out_edges_only = [node for node in node_names if out_edges[node] and not in_edges[node]]
+    logging.info(f"[Graph:{graph.get_name()}] Projects with dependencies only: {len(node_with_out_edges_only)}")
+
+    num_dependants = list(reversed(sorted(in_edges.items(), key=lambda item: item[1])))
+    logging.info(
+        f"[Graph:{graph.get_name()}] Projects with most direct dependants: {num_dependants[:min(5, len(num_dependants))]}")
+
+    num_dependencies = list(reversed(sorted(out_edges.items(), key=lambda item: item[1])))
+    logging.info(
+        f"[Graph:{graph.get_name()}] Projects with most direct dependencies: {num_dependencies[:min(5, len(num_dependencies))]}")
 
 
 def _fill_graph_from_dict(graph, nodes, added):
