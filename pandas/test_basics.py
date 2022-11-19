@@ -1,8 +1,9 @@
 import unittest
 import pandas
+import pandas as pd
 from pandas import Timestamp
 import timestamp_lib
-
+import numpy
 
 class BasicTests(unittest.TestCase):
 
@@ -17,6 +18,28 @@ class BasicTests(unittest.TestCase):
         # WHEN we detect the overflows in the dataset
         overflows = timestamp_lib.detect_month_overflows(subject)
 
-        # THEN that time window is part of the returned set as (from, to)
+        # THEN that time window is part of the returned collection as (from, to)
         self.assertTrue(overflows)
-        self.assertSetEqual(overflows, {tuple([Timestamp('2022-01-30 23:00:00'), Timestamp('2022-02-02 01:00:00')])})
+        self.assertTrue(tuple([Timestamp('2022-01-30 23:00:00'), Timestamp('2022-02-02 01:00:00')]) in overflows)
+
+    def test_merge_overlaps(self):
+        # GIVEN
+        data = [
+            {'month': '2022-01', 'from': Timestamp('2022-01-01 04:00:00'), 'to': Timestamp('2022-01-01 14:00:00')},
+            {'month': '2022-01', 'from': Timestamp('2022-01-01 04:00:00'), 'to': Timestamp('2022-01-01 08:00:00')},
+            {'month': '2022-01', 'from': Timestamp('2022-01-01 08:00:00'), 'to': Timestamp('2022-01-01 16:00:00')}
+        ]
+
+        subject = pandas.DataFrame.from_dict(data)
+        for idx, row in subject.iterrows():
+            print(row)
+
+        # WHEN
+        merged_overlaps = timestamp_lib.merge_overlaps(dataframe=subject, group_by="month")
+
+        # THEN
+        self.assertFalse(merged_overlaps.empty)
+        expected = pandas.DataFrame.from_dict([{'month': '2022-01', 'from': Timestamp('2022-01-01 04:00:00'),
+                                               'to': Timestamp('2022-01-01 16:00:00')}])
+        diff = expected.compare(merged_overlaps)
+        self.assertTrue(diff.empty)
