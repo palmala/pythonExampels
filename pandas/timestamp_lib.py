@@ -18,9 +18,9 @@ def merge_overlaps(dataframe: pandas.DataFrame, group_by: str = "month", from_co
                    to_column: str = "to") -> pandas.DataFrame:
     grouped = defaultdict(list)
 
-    for idx, row in dataframe.iterrows():
-        window = [row[from_column], row[to_column]]
-        grouped[row[group_by]].append(window)
+    for ind in dataframe.index:
+        window = [dataframe[from_column][ind], dataframe[to_column][ind]]
+        grouped[dataframe[group_by][ind]].append(window)
 
     to_dataframe = []
     for key in grouped:

@@ -35,12 +35,10 @@ class BasicTests(unittest.TestCase):
             {'month': '2022-02', 'from': Timestamp('2022-02-02 08:00:00'), 'to': Timestamp('2022-02-02 16:00:00')}
 
         ]
-
         subject = pandas.DataFrame.from_dict(data)
 
         # WHEN
         merged_overlaps = timestamp_lib.merge_overlaps(dataframe=subject, group_by="month")
-        print(merged_overlaps)
 
         # THEN
         self.assertFalse(merged_overlaps.empty)
