@@ -5,9 +5,9 @@ from collections import defaultdict
 def detect_month_overflows(dataframe: pandas.DataFrame, from_column: str = "from", to_column: str = "to") -> set:
     result = set()
 
-    for idx, row in dataframe.iterrows():
-        from_date = pandas.Timestamp(row[from_column])
-        to_date = pandas.Timestamp(row[to_column])
+    for ind in dataframe.index:
+        from_date = pandas.Timestamp(dataframe[from_column][ind])
+        to_date = pandas.Timestamp(dataframe[to_column][ind])
         if from_date.month != to_date.month:
             result.add(tuple([from_date, to_date]))
 
