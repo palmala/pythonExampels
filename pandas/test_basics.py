@@ -5,6 +5,7 @@ from pandas import Timestamp
 import timestamp_lib
 import numpy
 
+
 class BasicTests(unittest.TestCase):
 
     def test_month_overflow(self):
@@ -27,19 +28,27 @@ class BasicTests(unittest.TestCase):
         data = [
             {'month': '2022-01', 'from': Timestamp('2022-01-01 04:00:00'), 'to': Timestamp('2022-01-01 14:00:00')},
             {'month': '2022-01', 'from': Timestamp('2022-01-01 04:00:00'), 'to': Timestamp('2022-01-01 08:00:00')},
-            {'month': '2022-01', 'from': Timestamp('2022-01-01 08:00:00'), 'to': Timestamp('2022-01-01 16:00:00')}
+            {'month': '2022-01', 'from': Timestamp('2022-01-01 08:00:00'), 'to': Timestamp('2022-01-01 16:00:00')},
+            {'month': '2022-01', 'from': Timestamp('2022-01-02 01:00:00'), 'to': Timestamp('2022-01-02 11:00:00')},
+            {'month': '2022-02', 'from': Timestamp('2022-02-01 04:00:00'), 'to': Timestamp('2022-02-01 08:00:00')},
+            {'month': '2022-02', 'from': Timestamp('2022-02-01 08:00:00'), 'to': Timestamp('2022-02-01 12:00:00')},
+            {'month': '2022-02', 'from': Timestamp('2022-02-02 08:00:00'), 'to': Timestamp('2022-02-02 16:00:00')}
+
         ]
 
         subject = pandas.DataFrame.from_dict(data)
-        for idx, row in subject.iterrows():
-            print(row)
 
         # WHEN
         merged_overlaps = timestamp_lib.merge_overlaps(dataframe=subject, group_by="month")
+        print(merged_overlaps)
 
         # THEN
         self.assertFalse(merged_overlaps.empty)
-        expected = pandas.DataFrame.from_dict([{'month': '2022-01', 'from': Timestamp('2022-01-01 04:00:00'),
-                                               'to': Timestamp('2022-01-01 16:00:00')}])
+        expected = pandas.DataFrame.from_dict([
+            {'month': '2022-01', 'from': Timestamp('2022-01-01 04:00:00'), 'to': Timestamp('2022-01-01 16:00:00')},
+            {'month': '2022-01', 'from': Timestamp('2022-01-02 01:00:00'), 'to': Timestamp('2022-01-02 11:00:00')},
+            {'month': '2022-02', 'from': Timestamp('2022-02-01 04:00:00'), 'to': Timestamp('2022-02-01 12:00:00')},
+            {'month': '2022-02', 'from': Timestamp('2022-02-02 08:00:00'), 'to': Timestamp('2022-02-02 16:00:00')}
+        ])
         diff = expected.compare(merged_overlaps)
         self.assertTrue(diff.empty)
