@@ -1,5 +1,8 @@
 import pandas
 from collections import defaultdict
+from copy import deepcopy
+
+import pandas as pd
 
 
 def detect_month_overflows(dataframe: pandas.DataFrame, from_column: str = "from", to_column: str = "to") -> set:
@@ -16,11 +19,7 @@ def detect_month_overflows(dataframe: pandas.DataFrame, from_column: str = "from
 
 def merge_overlaps(dataframe: pandas.DataFrame, group_by: str = "month", from_column: str = "from",
                    to_column: str = "to") -> pandas.DataFrame:
-    grouped = defaultdict(list)
-
-    for ind in dataframe.index:
-        window = [dataframe[from_column][ind], dataframe[to_column][ind]]
-        grouped[dataframe[group_by][ind]].append(window)
+    grouped = _df_to_dict(dataframe, group_by, from_column, to_column)
 
     to_dataframe = []
     for key in grouped:
@@ -33,6 +32,14 @@ def merge_overlaps(dataframe: pandas.DataFrame, group_by: str = "month", from_co
     return result
 
 
+def _df_to_dict(dataframe, from_column, group_by, to_column):
+    grouped = defaultdict(list)
+    for ind in dataframe.index:
+        window = [dataframe[from_column][ind], dataframe[to_column][ind]]
+        grouped[dataframe[group_by][ind]].append(window)
+    return grouped
+
+
 def _merge_intervals_list(intervals: list) -> list:
     intervals.sort()
     result = list()
@@ -42,4 +49,28 @@ def _merge_intervals_list(intervals: list) -> list:
             result[-1][-1] = max(result[-1][-1], i[-1])
         else:
             result.append(i)
+    return result
+
+
+def split_overflows(dataframe: pandas.DataFrame, from_column: str = "from", to_column: str = "to") -> pandas.DataFrame:
+    result = deepcopy(dataframe)
+    splits = pandas.DataFrame()
+    for ind in result.index:
+        from_date = pandas.Timestamp(result[from_column][ind])
+        to_date = pandas.Timestamp(result[to_column][ind])
+        if from_date.month != to_date.month:
+            split_date = to_date.replace(day=1, hour=0, minute=0)
+            row = result.iloc[ind].to_dict()
+            result.at[ind, to_column] = split_date
+            row[from_column] = split_date
+            if splits.empty:
+                splits = pandas.DataFrame.from_dict([row])
+            else:
+                new_row_df = pd.DataFrame(row)
+                splits = pd.concat([splits, new_row_df], ignore_index=True)
+
+    if not splits.empty:
+        result = pd.concat([splits, result], ignore_index=True)
+
+    result = result.sort_values([from_column]).reset_index(drop=True)
     return result

@@ -1,7 +1,8 @@
 import unittest
 import pandas
-import pandas as pd
 from pandas import Timestamp
+from pandas.testing import assert_frame_equal
+
 import timestamp_lib
 import numpy
 
@@ -50,3 +51,23 @@ class BasicTests(unittest.TestCase):
         ])
         diff = expected.compare(merged_overlaps)
         self.assertTrue(diff.empty)
+
+    def test_split_month_overflow(self):
+        # GIVEN
+        data = [
+            {'from': Timestamp('2022-01-31 20:00:00'), 'to': Timestamp('2022-02-01 04:00:00')},
+            {'from': Timestamp('2022-01-11 20:00:00'), 'to': Timestamp('2022-01-11 23:00:00')}
+        ]
+        subject = pandas.DataFrame.from_dict(data)
+
+        # WHEN
+        split_overflows = timestamp_lib.split_overflows(dataframe=subject)
+
+        # THEN
+        self.assertFalse(split_overflows.empty)
+        expected = pandas.DataFrame.from_dict([
+            {'from': Timestamp('2022-01-11 20:00:00'), 'to': Timestamp('2022-01-11 23:00:00')},
+            {'from': Timestamp('2022-01-31 20:00:00'), 'to': Timestamp('2022-02-01 00:00:00')},
+            {'from': Timestamp('2022-02-01 00:00:00'), 'to': Timestamp('2022-02-01 04:00:00')}
+        ])
+        assert_frame_equal(expected, split_overflows, check_index_type=False)
