@@ -19,7 +19,8 @@ def _get_country_name_for_region(region: str):
 	raise ValueError(f"Region \"{region}\" is not valid. Please choose from these: {list(('/').join(region) for region in REGIONS)}")
 	
 
-def _get_num_of_workdays_of_a_country(country: str, month: int, year: int):
+def _get_num_of_workdays_of_a_country(region: str, month: int, year: int):
+	country = _get_country_name_for_region(region)
 	holidays_res = holidays.country_holidays(country=country, years=year).keys()
 	holidays_of_month = [holiday for holiday in holidays_res if holiday.month == month]
 	start = dt.date( year, month, 1)
@@ -28,10 +29,6 @@ def _get_num_of_workdays_of_a_country(country: str, month: int, year: int):
 	return num_of_workdays
 	
 	
-def get_num_of_workdays(region: Optional[str] = 'global', month: Optional[int] = datetime.now().month, year: Optional[int] = dt.datetime.now().year):
-	if region == 'global':
-		workdays_of_all_regions = [_get_num_of_workdays_of_a_country(country, month, year) for reg, country in REGIONS.items()]
-		return min(workdays_of_all_regions)
-	else:
-		country = _get_country_name_for_region(region)
-		return _get_num_of_workdays_of_a_country(country, month, year)
+def get_min_num_of_workdays(regions: Optional[list] = [reg[0] for reg in REGIONS], month: Optional[int] = datetime.now().month, year: 
+	Optional[int] = dt.datetime.now().year):
+	return min([_get_num_of_workdays_of_a_country(reg, month, year) for reg in regions])
