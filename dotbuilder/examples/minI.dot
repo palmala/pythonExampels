@@ -1,0 +1,11 @@
+digraph minI {
+bgcolor=white;
+ranksep=2;
+A [label="A\nI: 1.0"];
+B [label="B\nI: 0.0"];
+A -> B;
+C [label="C\nI: 0.0"];
+A -> C;
+D [label="D\nI: 0.0"];
+A -> D;
+}

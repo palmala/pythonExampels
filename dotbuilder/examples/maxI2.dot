@@ -1,0 +1,12 @@
+digraph maxI2 {
+bgcolor=white;
+ranksep=2;
+A [label="A\nI: 0.0"];
+B [label="B\nI: 1.0"];
+B -> A;
+C [label="C\nI: 0.5"];
+B -> C;
+C -> A;
+D [label="D\nI: 1.0"];
+D -> A;
+}
