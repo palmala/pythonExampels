@@ -1,0 +1,13 @@
+<html>
+<head>
+    <title>Don't look at me, I'm ugly in the morning</title>
+</head>
+<body>
+
+<ul>
+    {% for button in buttons %}
+    <li><a href="{{ button['path'] }}">{{ button["name"] }}</a></li>
+    {% endfor %}
+</ul>
+</body>
+</html>

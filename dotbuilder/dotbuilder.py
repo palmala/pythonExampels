@@ -75,10 +75,6 @@ def calculate_instability(mygraph: Dot):
         node.set("label", f"{node.get('label')}\nI: {instability[node_name]}".replace("\"", ""))
 
     logger.debug(f"[Graph:{mygraph.get_name()}] Instability calculations end")
-    average_i = float(sum(list(instability.values()))) / len(mygraph.get_edges())
-    logger.info(f"[Graph:{mygraph.get_name()}]: average instability {average_i}")
-    logger.info(
-        f"[Graph:{mygraph.get_name()}]: average instability times edges {str(sum(list(instability.values())) * len(mygraph.get_edges()))}")
     return instability
 
 
