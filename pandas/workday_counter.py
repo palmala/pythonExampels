@@ -17,7 +17,7 @@ def _get_country_name_for_region(region: str):
         if region in reg:
             return REGIONS[reg]
     raise ValueError(
-        f"Region \"{region}\" is not valid. Please choose from these: {list(('/').join(region) for region in REGIONS)}")
+        f"Region \"{region}\" is not valid. Please choose from these: {list('/'.join(region) for region in REGIONS)}")
 
 
 def _get_num_of_workdays_of_a_country(region: str, year: int, month: int):
@@ -30,6 +30,7 @@ def _get_num_of_workdays_of_a_country(region: str, year: int, month: int):
     return num_of_workdays
 
 
-def get_min_num_of_workdays(regions: list = [reg[0] for reg in REGIONS], year:
-int = dt.datetime.now().year, month: int = datetime.now().month):
+def get_min_num_of_workdays(regions: list, year: int = dt.datetime.now().year, month: int = datetime.now().month):
+    if not regions:
+        regions = [reg[0] for reg in REGIONS]
     return min([_get_num_of_workdays_of_a_country(reg, year, month) for reg in regions])
