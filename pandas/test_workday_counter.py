@@ -30,10 +30,10 @@ class TestWorkdayCounter(unittest.TestCase):
 	def test_get_num_of_workdays_of_a_country(self):
 		#GIVEN
 		#WHEN
-		actual_ln_workdays_2022_04 = _get_num_of_workdays_of_a_country('ln', 4, 2022)
-		actual_hk_workdays_2022_02 = _get_num_of_workdays_of_a_country('hk', 2, 2022)
-		actual_tk_workdays_2021_04 = _get_num_of_workdays_of_a_country('tk', 4, 2021)
-		actual_ny_workdays_2020_07 = _get_num_of_workdays_of_a_country('ny', 7, 2020)
+		actual_ln_workdays_2022_04 = _get_num_of_workdays_of_a_country('ln', 2022, 4)
+		actual_hk_workdays_2022_02 = _get_num_of_workdays_of_a_country('hk', 2022, 2)
+		actual_tk_workdays_2021_04 = _get_num_of_workdays_of_a_country('tk', 2021, 4)
+		actual_ny_workdays_2020_07 = _get_num_of_workdays_of_a_country('ny', 2020, 7)
 		
 		#THEN
 		self.assertEqual(actual_ln_workdays_2022_04, 19)
@@ -42,14 +42,14 @@ class TestWorkdayCounter(unittest.TestCase):
 		self.assertEqual(actual_ny_workdays_2020_07, 22)
 
 
-	def testget_min_num_of_workdays(self):
+	def test_get_min_num_of_workdays(self):
 		#GIVEN
 		#WHEN
-		actual_hk_workdays_2022_04 = get_min_num_of_workdays(['hk'], month=4, year=2022)
-		actual_ny_workdays_2022_04 = get_min_num_of_workdays(['ny'], month=4, year=2022)
-		actual_ln_workdays_2022_04 = get_min_num_of_workdays(['ln'], month=4, year=2022)
-		actual_tk_workdays_2022_04 = get_min_num_of_workdays(['tk'], month=4, year=2022)
-		the_smallest_num_of_workdays_amongst_regions = get_min_num_of_workdays(month=4, year=2022)
+		actual_hk_workdays_2022_04 = get_min_num_of_workdays(['hk'], year=2022, month=4)
+		actual_ny_workdays_2022_04 = get_min_num_of_workdays(['ny'], year=2022, month=4)
+		actual_ln_workdays_2022_04 = get_min_num_of_workdays(['ln'], year=2022, month=4)
+		actual_tk_workdays_2022_04 = get_min_num_of_workdays(['tk'], year=2022, month=4)
+		the_smallest_num_of_workdays_amongst_regions = get_min_num_of_workdays(year=2022, month=4)
 		
 		
 		#THEN
