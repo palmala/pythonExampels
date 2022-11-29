@@ -20,10 +20,10 @@ class CheckerTests(unittest.TestCase):
             cats = csv.DictReader(data_csv)
             issues = defaultdict(dict)
 
-        # WHEN
+            # WHEN
             for cat in cats:
                 issues.update(checkers.check(cat))
 
         # THEN
-        self.assertDictEqual(issues['Owner1'], {'Cat3': ["Missing sex info"]})
-        self.assertDictEqual(issues[None], {'Cat2': ["Missing owner info"]})
+        self.assertDictEqual(issues['Owner1'], [{'Cat3': ["Missing sex info"]}])
+        self.assertDictEqual(issues[None], [{'Cat2': ["Missing owner info"]}])

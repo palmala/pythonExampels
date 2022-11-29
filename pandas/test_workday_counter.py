@@ -2,6 +2,7 @@
 
 import unittest
 from workday_counter import _get_country_name_for_region, _get_num_of_workdays_of_a_country, get_min_num_of_workdays
+from pandas import Timestamp
 
 
 class TestWorkdayCounter(unittest.TestCase):
@@ -56,6 +57,22 @@ class TestWorkdayCounter(unittest.TestCase):
         self.assertEqual(actual_tk_workdays_2022_04, 20)
         self.assertEqual(actual_ny_workdays_2022_04, 21)
         self.assertEqual(the_smallest_num_of_workdays_amongst_regions, 18)
+
+    def test_get_workday_hours_in_time_range(self):
+        # GIVEN
+        ranges = [
+            {'from': Timestamp(), 'to': Timestamp(), 'expected': 0},
+            {'from': Timestamp(), 'to': Timestamp(), 'expected': 0},
+            {'from': Timestamp(), 'to': Timestamp(), 'expected': 0},
+            {'from': Timestamp(), 'to': Timestamp(), 'expected': 0}
+        ]
+
+        # WHEN
+        results = [get_workday_hours_in_time_range(trange['from'], trange['to']) for trange in ranges]
+
+        # THEN
+        for result in results:
+            self.assertEqual(results['expected'], result)
 
 
 if __name__ == "__main__":
