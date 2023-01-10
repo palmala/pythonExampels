@@ -2,3 +2,6 @@ cat,owner,sex
 Cat1,Owner1,male
 Cat2,"",male
 Cat3,Owner1,""
+Cat4,Owner1,""
+Cat5,"",male
+Cat6,"",""
