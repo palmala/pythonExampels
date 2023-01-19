@@ -1,6 +1,6 @@
 import unittest
 import csv
-from checkers import AttributeMissingChecker, Checker
+from checkers import AttributeMissingChecker3, Checker
 from collections import defaultdict
 from checkers2 import AttributeMissingChecker2, Checker2
 import pandas as pd
@@ -9,7 +9,7 @@ class CheckerTests(unittest.TestCase):
 
     def test_checkers(self):
         # GIVEN
-        subject = AttributeMissingChecker('owner')
+        subject = AttributeMissingChecker('owner', '')
 
         # WHEN / THEN
         self.assertTrue(isinstance(subject, Checker))
@@ -18,7 +18,7 @@ class CheckerTests(unittest.TestCase):
     def test_single_attribute(self):
         # GIVEN
         with open('data.csv', 'r') as data_csv:
-            checkers = [AttributeMissingChecker("owner"), AttributeMissingChecker("sex")]
+            checkers = [AttributeMissingChecker('owner', ''), AttributeMissingChecker('sex', '')]
             cats = csv.DictReader(data_csv)
 
             # WHEN
