@@ -11,14 +11,27 @@ if __name__ == "__main__":
     ing = pd.read_csv('ingredients.csv')
     ing.to_sql('ingredients', conn, if_exists='replace')
 
+    # cur.execute("""
+    #     SELECT
+    #          P1.PRODUCT_NAME, P1.VERSION, P2.PRODUCT_NAME, P2.VERSION
+    #     FROM
+    #         ((products as P1
+    #         INNER JOIN ingredients ON P1.PRODUCT_ID=ingredients.PRODUCT_ID)
+    #         INNER JOIN products as P2 ON P2.PRODUCT_ID=ingredients.INGREDIENT_ID)
+    # """)
+
     cur.execute("""
         SELECT
-             P1.PRODUCT_NAME, P1.VERSION, P2.PRODUCT_NAME, P2.VERSION
+             PRODUCT_NAME, VERSION, MAX(PRODUCT_ID)
         FROM 
-            ((products as P1
-            INNER JOIN ingredients ON P1.PRODUCT_ID=ingredients.PRODUCT_ID)
-            INNER JOIN products as P2 ON P2.PRODUCT_ID=ingredients.INGREDIENT_ID)
+            products
+        GROUP BY PRODUCT_NAME
     """)
+
+    # cur.execute("""
+    #     SELECT PRODUCT_NAME, VERSION, MAX(PRODUCT_ID) FROM products GROUP BY PRODUCT_NAME
+    # """)
+
     rows = cur.fetchall()
     for row in rows:
         print(row)
