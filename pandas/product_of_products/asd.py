@@ -15,11 +15,9 @@ if __name__ == "__main__":
         SELECT
              P1.PRODUCT_NAME, P1.VERSION, P2.PRODUCT_NAME, P2.VERSION
         FROM 
-            products as P1, ingredients as I, products as P2
-        WHERE
-            P1.PRODUCT_ID=I.PRODUCT_ID
-            AND
-            P2.PRODUCT_ID=I.INGREDIENT_ID
+            ((products as P1
+            INNER JOIN ingredients ON P1.PRODUCT_ID=ingredients.PRODUCT_ID)
+            INNER JOIN products as P2 ON P2.PRODUCT_ID=ingredients.INGREDIENT_ID)
     """)
     rows = cur.fetchall()
     for row in rows:
