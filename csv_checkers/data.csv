@@ -1,8 +1,8 @@
-cat,owner,sex,sconar_findings
-Cat1,Owner1,male,0
-Cat2,"",male,0
-Cat3,Owner1,"",7
-Cat4,Owner1,"",0
-Cat5,"",male,6
-Cat6,"","",0
-Cat7,Owner2,"",6
+cat,owner,sex,sconar_findings,grn
+Cat1,Owner1,male,0,grn1
+Cat2,"",male,0,grn2
+Cat3,Owner1,"",7,grn3
+Cat4,Owner1,"",0,grn1
+Cat5,"",male,6,grn2
+Cat6,"","",0,grn3
+Cat7,Owner2,"",6,grn1

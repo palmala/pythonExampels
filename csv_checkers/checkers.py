@@ -36,7 +36,7 @@ class AttributeMissingChecker(Checker):
     
     def check(self, row: dict):
         if row[self.checking_attribute] == self.handling_issue_value:
-            issue = {row['cat']: f"Missing {self.checking_attribute} info"}
+            issue = {(row['cat']): f"Missing {self.checking_attribute} info"}
             self.issues[row['owner']].update(issue)
 
 
@@ -49,23 +49,36 @@ class AttributeIsNotProperChecker(Checker):
         self.ehcck_if_value_is_proper_function = ehcck_if_value_is_proper_function
         
     
-    
     def check(self, row: dict):
         if self.ehcck_if_value_is_proper_function(row[self.checking_attribute]):
-            issue = {row['cat']: f"Not proper {self.checking_attribute} value ({row[self.checking_attribute]})"}
+            issue = {(row['cat'], row['grn']): f"Not proper {self.checking_attribute} value ({row[self.checking_attribute]})", 'grn':row['grn']  }
             self.issues[row['owner']].update(issue)
 
 
+class OwnerMissingChecker(Checker):
+                
+    def __init__(self, handling_issue_value):
+        self.handling_issue_value = handling_issue_value
+        self.found_cats_and_grn_pairs = defaultdict(list)
+        
+                
+    def check(self, row: dict):
+        if row['owner'] == self.handling_issue_value:
+            self.found_cats_and_grn_pairs[row['grn']].append(row['cat'])
+                
+                
+
 if __name__ == '__main__':
     with open('data.csv', 'r') as data_csv:
-        checkers = [AttributeMissingChecker('owner', ''), AttributeMissingChecker('sex', ''), AttributeIsNotProperChecker('sconar_findings', lambda x: int(x) > 5)]
+        checkers = [OwnerMissingChecker(""), AttributeMissingChecker('sex', ''), AttributeIsNotProperChecker('sconar_findings', lambda x: int(x) > 5)]
         cats = csv.DictReader(data_csv)
         
         for cat in cats:
             for checker in checkers:
                 checker.check(cat)
-                
-        issues = Checker.merge_issues_dicts([checker.issues for checker in checkers])
+        
+        print(f"Owner checker resultÉ  {checkers[0].found_cats_and_grn_pairs}")
+        issues = Checker.merge_issues_dicts([checker.issues for checker in checkers[1:]])
         for k, v in issues.items():
             print(f"OWNER={k}: {v}")
         

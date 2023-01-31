@@ -37,10 +37,10 @@ class AttributeMissingChecker2(Checker2):
 		
 		
 	def check(self):
-		rows_with_missing_attribues = self.csv_dataframe[self.csv_dataframe[self.checking_attribute].isna()]
-		rows_with_missing_attribues = rows_with_missing_attribues[['cat', 'owner']]
-		rows_with_missing_attribues['issue'] = f"Missing {self.checking_attribute} info"
-		rows_with_missing_attribues['owner'] = rows_with_missing_attribues['owner'].fillna("Missing Owner")
-		self.issues = rows_with_missing_attribues
+		rows_with_missing_attributes = self.csv_dataframe[self.csv_dataframe[self.checking_attribute].isna()]
+		rows_with_missing_attributes_with_cat_and_owner_columns = rows_with_missing_attribues[['cat', 'owner']]
+		rows_with_missing_attributes_with_cat_and_owner_columns['issue'] = f"Missing {self.checking_attribute} info"
+		rows_with_missing_attributes_with_cat_and_owner_columns['owner'] = rows_with_missing_attribues['owner'].fillna("Missing Owner")
+		self.issues = rows_with_missing_attributes_with_cat_and_owner_columns
 		
 		
