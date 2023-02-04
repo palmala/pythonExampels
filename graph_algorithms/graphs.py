@@ -45,7 +45,7 @@ def generate_statistics(graph: dict[str: list]):
     num_dependants = list(reversed(sorted(in_edge_numbers.items(), key=lambda item: item[1])))
     statistics["nodes_with_most_in_edges"] = num_dependants[:min(5, len(num_dependants))]
 
-    num_dependencies = list(reversed(sorted(graph.items(), key=lambda item: item[1])))
+    num_dependencies = list(reversed(sorted(out_edge_numbers.items(), key=lambda item: item[1])))
     statistics["nodes_with_most_out_edges"] = num_dependencies[:min(5, len(num_dependencies))]
     return statistics
 

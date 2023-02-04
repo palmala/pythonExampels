@@ -1,7 +1,8 @@
 import ipycytoscape
 
 
-def set_default_cytoscape_style(cytoscape_obj):
+def set_default_cytoscape_style(cytoscape_obj: ipycytoscape.CytoscapeWidget):
+    # cytoscape_obj.set_layout()
     cytoscape_obj.set_style(
         [
             {
@@ -10,8 +11,8 @@ def set_default_cytoscape_style(cytoscape_obj):
                     'font-family': 'helvetica',
                     'font-size': 'data(fontsize)',
                     'label': 'data(label)',
-                    'width': 'data(size)',
-                    'height': 'data(size)',
+                    'width': 'data(width)',
+                    'height': 'data(height)',
                     'background-color': 'lightblue',
                     "text-valign": "center",
                     "text-halign": "center",

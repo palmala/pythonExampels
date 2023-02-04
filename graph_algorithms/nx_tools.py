@@ -15,12 +15,10 @@ def dict_to_nx(graph: dict[str: list]):
     return nx_graph
 
 
-def update_nx_with_instability(nx_graph: nx.DiGraph, instability: dict[str: int], in_edges: dict[int]):
+def update_nx_with_instability(nx_graph: nx.DiGraph, instability: dict[str: int]):
     for node, data in nx_graph.nodes(data=True):
-        data['fontsize'] = 10
         data['label'] = f"{node} {instability[node]}"
         data['instability'] = instability[node]
-        data['size'] = data['fontsize'] * len(data['label']) + 5 * in_edges[node]
 
 
 def update_nx_with_violations(nx_graph, violations):
@@ -28,6 +26,24 @@ def update_nx_with_violations(nx_graph, violations):
         for violation in violations:
             if s == violation[0] and t == violation[1]:
                 data['classes'] = 'violation'
+
+
+def update_nx_node_sizes(nx_graph: nx.DiGraph, in_edges: dict[int], default_font_size=10):
+    max_size = 0
+    for node, data in nx_graph.nodes(data=True):
+        if default_font_size * len(data['label']) > max_size:
+            max_size = default_font_size * len(data['label'])
+
+    for node, data in nx_graph.nodes(data=True):
+        data['fontsize'] = default_font_size
+        data['width'] = max_size // 2 + 3 * default_font_size
+        data['height'] = default_font_size * 2
+
+    for node, data in nx_graph.nodes(data=True):
+        scaling = 1 + in_edges[node] / 4
+        data['fontsize'] = int(data['fontsize'] * scaling)
+        data['width'] = int(data['width'] * scaling)
+        data['height'] = int(data['height'] * scaling)
 
 
 def update_nx_with_cycles(nx_graph, cycles):
