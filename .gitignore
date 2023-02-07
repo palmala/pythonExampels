@@ -7,3 +7,4 @@ rh.gif
 __pycache__
 dotbuilder/examples
 *.svg
+**/.ipynb_checkpoints/
