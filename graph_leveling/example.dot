@@ -1,0 +1,7 @@
+digraph generic{
+node1->node2;
+node2->node3;
+node3->node4;
+node2->node5;
+node0->node3;
+}
