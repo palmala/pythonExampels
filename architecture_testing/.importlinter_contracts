@@ -1,0 +1,19 @@
+[importlinter]
+root_package = app
+
+[importlinter:contract:1]
+name=Data does not import Domain or Presentation
+type=forbidden
+source_modules=
+    app.data
+forbidden_modules=
+    app.domain
+    app.presentation
+
+[importlinter:contract:2]
+name=Presentation does not import Data
+type=forbidden
+source_modules=
+    app.presentation
+forbidden_modules=
+    app.data
