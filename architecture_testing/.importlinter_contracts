@@ -2,7 +2,7 @@
 root_package = app
 
 [importlinter:contract:1]
-name=Data does not import Domain or Presentation
+name=Data does not depend on Domain or Presentation
 type=forbidden
 source_modules=
     app.data
@@ -11,9 +11,9 @@ forbidden_modules=
     app.presentation
 
 [importlinter:contract:2]
-name=Presentation does not import Data
+name=Domain shall not depend on Presentation
 type=forbidden
 source_modules=
-    app.presentation
+    app.domain
 forbidden_modules=
-    app.data
+    app.presentation

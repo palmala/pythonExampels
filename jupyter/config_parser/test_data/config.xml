@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<System name="dummy_system">
+    <Environment name="env1" class="prod">
+        <Process name="processA">
+            <Instance name="host1:processA1">
+                <Setting name="PROCA_SETTING1">foo</Setting>
+                <Setting name="PROCA_SETTING2">bar</Setting>
+            </Instance>
+            <Instance name="host1:processA2">
+                <Setting name="PROCA_SETTING1">foo</Setting>
+                <Setting name="PROCA_SETTING1">bar</Setting>
+                <Setting name="PROCA_SETTING2">foo</Setting>
+            </Instance>
+        </Process>
+    </Environment>
+</System>
