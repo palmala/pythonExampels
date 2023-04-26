@@ -19,7 +19,7 @@ def detect_month_overflows(dataframe: pandas.DataFrame, from_column: str = "from
 
 def merge_overlaps(dataframe: pandas.DataFrame, group_by: str = "month", from_column: str = "from",
                    to_column: str = "to") -> pandas.DataFrame:
-    grouped = _df_to_dict(dataframe, group_by, from_column, to_column)
+    grouped = _df_to_dict(dataframe, from_column, to_column, group_by)
 
     to_dataframe = []
     for key in grouped:
@@ -32,7 +32,7 @@ def merge_overlaps(dataframe: pandas.DataFrame, group_by: str = "month", from_co
     return result
 
 
-def _df_to_dict(dataframe, from_column, group_by, to_column):
+def _df_to_dict(dataframe, from_column, to_column, group_by):
     grouped = defaultdict(list)
     for ind in dataframe.index:
         window = [dataframe[from_column][ind], dataframe[to_column][ind]]
@@ -42,9 +42,10 @@ def _df_to_dict(dataframe, from_column, group_by, to_column):
 
 def _merge_intervals_list(intervals: list) -> list:
     intervals.sort()
+    print(f'intervals: {intervals}')
     result = list()
     result.append(intervals[0])
-    for i in intervals[1:]:
+    for i in intervals[1:]:        
         if result[-1][0] <= i[0] <= result[-1][-1]:
             result[-1][-1] = max(result[-1][-1], i[-1])
         else:
