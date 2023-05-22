@@ -8,3 +8,4 @@ __pycache__
 dotbuilder/examples
 *.svg
 **/.ipynb_checkpoints/
+.DS_Store
