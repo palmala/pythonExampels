@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 import pandas as pd
-from dash import Dash, Input, Output, dcc, html
-
+from dash import Dash, Input, Output, dcc, html, dash_table
+import dash_bootstrap_components as dbc
+import dash_mantine_components as dmc
 
 def cast_date_str_to_date_and_sort(df):
 	df['DATE'] = pd.to_datetime(df['DATE'])
@@ -23,6 +24,8 @@ data = (
 )
 countries = data["COUNTRY"].sort_values().unique()
 chart_types = ['line', 'bar']
+country_dropdown_options = [{"label": country, "value": country} for country in countries]
+country_dropdown_options.append({"label": "ALL", "value": ""})
 
 app = Dash(__name__)
 
@@ -52,10 +55,7 @@ app.layout = html.Div(
                         html.Div(children="Country", className="menu-title"),
                         dcc.Dropdown(
                             id="region-filter",
-                            options=[
-                                {"label": country, "value": country}
-                                for country in countries
-                            ],
+                            options=country_dropdown_options,
                             value="Eng",
 							clearable=False,
                             className="dropdown",
@@ -80,50 +80,83 @@ app.layout = html.Div(
 							className="dropdown",
 						),
 					],
-				)
+				),
+				html.Div(
+					[
+						dmc.Checkbox(id="moving-average", label="Show moving average", mb=10),
+					]
+				),
+				
 			],
             className="menu",
         ),
         html.Div(
             children=[
-                html.Div(
-                    children=dcc.Graph(
-                        id="price-chart",
-                        config={"displayModeBar": False},
-                    ),
-                    className="card",
-                )
+				html.Div(
+					[
+						dbc.Card([
+							dbc.CardHeader("This is the header of the card"),
+							dbc.CardBody(
+								html.Div(
+									children=dcc.Graph(
+										id="incidents-chart",
+										config={"displayModeBar": False},
+									),
+									className="card",
+								)
+								
+							),
+							dbc.Container([
+								dbc.Label('Data in table'),
+								dash_table.DataTable(id='datatable'),
+							]),
+						]
+						)
+					]
+				)
 			],
             className="wrapper",
         ),
     ]
 )
 
-
 @app.callback(
-    Output("price-chart", "figure"),
+    Output("incidents-chart", "figure"),
+    Output("datatable", "data"),
 	Input("region-filter", "value"),
 	Input("type-filter", "value"),
+	Input("moving-average", "checked")
 )
-
-def update_charts(country, charttype):
-	filtered_data = data.query(
-        "COUNTRY == @country"
-	)
-	filtered_data = filtered_data.groupby('DATE').size().reset_index(name='num_of_incidents')
-	filtered_data = cast_date_str_to_date_and_sort(filtered_data)
-	price_chart_figure = {
-        "data": [
-            {
-                "x": filtered_data["DATE"],
-                "y": filtered_data["num_of_incidents"],
-                "type": charttype,
-#               "hovertemplate": "$%{y:.2f}<extra></extra>",
-            },
-        ],
-        "layout": {
+def update_charts(country, charttype, checked):
+	filtered_data = data
+	if country:
+		filtered_data = data.query(
+			"COUNTRY == @country"
+		)
+	gb_filtered_data = filtered_data.groupby('DATE').size().reset_index(name='num_of_incidents')
+	gb_filtered_data = cast_date_str_to_date_and_sort(gb_filtered_data)
+	
+	data_list = [
+		{
+			"x": gb_filtered_data["DATE"],
+			"y": gb_filtered_data["num_of_incidents"],
+			"type": charttype,
+		}
+	]
+	if checked:
+		gb_filtered_data['moving_average'] = gb_filtered_data['num_of_incidents'].rolling(3).mean()
+		data_list.append({
+			"x": gb_filtered_data["DATE"],
+			"y": gb_filtered_data["moving_average"],
+			"type": "line",
+			'line': {'color':'red'}
+		})
+		
+	incidents_chart_figure = {
+        "data": data_list,
+		"layout": {
             "title": {
-                "text": f"Num of incidents in {country}",
+                "text": f"Number of incidents in {country}",
                 "x": 0.05,
                 "xanchor": "left",
             },
@@ -131,7 +164,11 @@ def update_charts(country, charttype):
             "colorway": ["#17B897"],
         },
     }
-	return price_chart_figure
+	filtered_data = filtered_data[['DATE', 'COUNTRY', 'INCIDENT_ID']]
+	filtered_data['DATE'] = pd.to_datetime(filtered_data['DATE']).dt.strftime('%Y-%m')
+	filtered_data.sort_values(by='DATE', inplace=True)
+	datatable = filtered_data.to_dict(orient='records')
+	return incidents_chart_figure, datatable
 
 
 if __name__ == "__main__":
