@@ -1,3 +1,5 @@
+from ..domain import domain
+
 class Datasource:
 
     @classmethod
