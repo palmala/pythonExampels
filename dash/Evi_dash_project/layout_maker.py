@@ -13,9 +13,11 @@ from abc import ABC, abstractmethod
 
 
 class LayoutMaker(ABC):
-    def __init__(self, app, df, app_title, layout_elements):
+    def __init__(self, app, df, date_column_name, column_to_groupby, app_title, layout_elements):
         self.app = app
         self.df = df
+        self.date_column_name = date_column_name
+        self.column_to_groupby = column_to_groupby
         self.app.title = app_title
         self.layout_elements = layout_elements
 
@@ -29,14 +31,14 @@ class LayoutMaker(ABC):
 
 
 class SimpleLayoutMaker(LayoutMaker):
-    def __init__(self, app, df, app_title, layout_elements: LayoutElements):
-        super().__init__(app, df, app_title, layout_elements)
+    def __init__(self, app, df, date_column_name, column_to_groupby, app_title, layout_elements: LayoutElements):
+        super().__init__(app, df, date_column_name, column_to_groupby, app_title, layout_elements)
         self.app.callback(self.layout_elements.outputs, self.layout_elements.inputs)(
             self.callback
         )
 
     def make_layout(self):
-        prepare_df(self.df, "DATE", ["LIKES"])
+        prepare_df(self.df, self.date_column_name, ["LIKES"])
 
         self.app.layout = html.Div(
             children=[
@@ -100,30 +102,30 @@ class SimpleLayoutMaker(LayoutMaker):
         filtered_data = filter_data_between_min_and_max_value(
             self.df, "LIKES", min_value_of_likes, max_value_of_likes
         )
-        filter_data_by_column_value(filtered_data, "COUNTRY", country)
+        filter_data_by_column_value(filtered_data, self.column_to_groupby, country)
         gb_filtered_data = get_df_with_num_of_items_for_grouped_column_values(
-            filtered_data, "DATE", "num_of_incidents"
+            filtered_data, self.date_column_name, "num_of_incidents"
         )
-        str_to_date_and_sort(gb_filtered_data, "DATE")
+        str_to_date_and_sort(gb_filtered_data, self.date_column_name)
         gb_filtered_data = fill_missing_dates_within_range(
-            gb_filtered_data, "DATE", "MS", "%Y-%m"
-        )
+            gb_filtered_data, self.date_column_name, "MS", "%Y-%m"
+        )		
         data_list = self.create_data_list_for_chart(
-            gb_filtered_data, "DATE", "num_of_incidents", charttype
+            gb_filtered_data, self.date_column_name, "num_of_incidents", charttype
         )
         if moving_avg_checked:
             self.add_moving_average_date_to_data_list(
                 gb_filtered_data,
-                "DATE",
+                self.date_column_name,
                 "moving_average",
                 "num_of_incidents",
                 data_list,
-            )
+            )	
         incidents_chart_figure = self.create_chart_figure(
             data_list, f"Number of incidents in {country}"
         )
-        filtered_data = filtered_data[["DATE", "COUNTRY", "INCIDENT_ID", "LIKES"]]
-        str_to_date_and_sort(filtered_data, "DATE", "%Y-%m")
+        filtered_data = filtered_data[[self.date_column_name, self.column_to_groupby, "INCIDENT_ID", "LIKES"]]
+        str_to_date_and_sort(filtered_data, self.date_column_name, "%Y-%m")
         datatable = filtered_data.to_dict(orient="records")
         selector_str = (
             f"Filtered likes data from {min_value_of_likes} to {max_value_of_likes}"
@@ -133,10 +135,11 @@ class SimpleLayoutMaker(LayoutMaker):
 
 
 class ComplexLayoutMaker(SimpleLayoutMaker):
-    def __init__(self, app, df, app_title, layout_elements):
-        super().__init__(app, df, app_title, layout_elements)
+    def __init__(self, app, df, date_column_name, column_to_groupby, app_title, layout_elements):
+        super().__init__(app, df, date_column_name, column_to_groupby, app_title, layout_elements)
 
     def callback(self, charttype, country, moving_avg_checked, range_selector_value):
         return super().callback(
             country, moving_avg_checked, range_selector_value, charttype
         )
+	

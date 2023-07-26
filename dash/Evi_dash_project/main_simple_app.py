@@ -12,7 +12,7 @@ if __name__ == "__main__":
 	app = Dash(__name__)
 	
 	simple_layout_elements = SimpleLayoutElements(df)
-	simple_layout_maker = SimpleLayoutMaker(app, df, 'SimpleEviProj', simple_layout_elements)
+	simple_layout_maker = SimpleLayoutMaker(app, df, 'DATE', 'COUNTRY', 'SimpleEviProj', simple_layout_elements)
 	simple_layout_maker.make_layout()
 	
 	app.run_server(debug=True)

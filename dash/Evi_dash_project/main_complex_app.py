@@ -8,11 +8,11 @@ from layout_maker import SimpleLayoutMaker, ComplexLayoutMaker
 
 
 if __name__ == "__main__":
-	df = pd.read_csv('incidents2.csv')
+	df = pd.read_csv('incidents3.csv')
 	app = Dash(__name__)
 	
-	complex_layout_elements = ComplexLayoutElements(df)
-	complex_layout_maker = ComplexLayoutMaker(app, df, 'ComplexEviProj', complex_layout_elements)
+	complex_layout_elements = ComplexLayoutElements(df, 'Region')
+	complex_layout_maker = ComplexLayoutMaker(app, df, 'Date', 'Region', 'ComplexEviProj', complex_layout_elements)
 	complex_layout_maker.make_layout()
 
 	app.run_server(debug=True)

@@ -6,16 +6,17 @@ from abc import ABC
 
 
 class LayoutElements(ABC):
-    def __init__(self):
-        self.header = None
+    def __init__(self, df, column_to_dropdown):
+        self.df = df
+        self.column_to_dropdown = column_to_dropdown
 
 
 class SimpleLayoutElements(LayoutElements):
-    def __init__(self, df):
-        self.df = df
+    def __init__(self, df, column_to_dropdown='COUNTRY'):
+        super().__init__(df, column_to_dropdown)
         self.inputs = []
         self.outputs = []
-        self.header_div = self.create_header_div()  #
+        self.header_div = self.create_header_div("Incident Analytics")
         self.buttons_in_menu = self.create_layout_menu_elements()
         self.range_slider_div = self.create_range_slider_div()
         self.graph = self.create_graph()
@@ -25,10 +26,10 @@ class SimpleLayoutElements(LayoutElements):
         values = self.df[column_name].sort_values().unique()
         return [{"label": value, "value": value} for value in values]
 
-    def create_header_div(self):
+    def create_header_div(self, title):
         return html.Div(
             children=[
-                html.H1(children="Incident Analytics", className="header-title"),
+                html.H1(children=title, className="header-title"),
                 html.P(
                     children=(
                         "Analyze the number of incidents"
@@ -57,8 +58,6 @@ class SimpleLayoutElements(LayoutElements):
             ]
         )
 
-    #
-    #
     def create_range_slider_div(self):
         input_component_id = "my-range-slider"
         input_component_property = "value"
@@ -109,7 +108,7 @@ class SimpleLayoutElements(LayoutElements):
 
     def create_layout_menu_elements(self):
         country_dropdown_options = self.create_dropdown_button_with_column_values(
-            "COUNTRY", "Country"
+            self.column_to_dropdown, self.column_to_dropdown
         )
         country_dropdown_options.append({"label": "ALL", "value": ""})
         region_filter_div = self.create_region_filter(country_dropdown_options)
@@ -118,8 +117,11 @@ class SimpleLayoutElements(LayoutElements):
 
 
 class ComplexLayoutElements(SimpleLayoutElements):
-    def __init__(self, df):
-        super().__init__(df)
+    def __init__(self, df, column_to_dropdown='COUNTRY'):
+        super().__init__(df, column_to_dropdown)
+
+    def create_header_div(self, title):
+        return super().create_header_div("Complex Incident Analytics")
 
     def create_chart_type_filter_div(self, chart_types):
         component_id = "type-filter"
@@ -153,3 +155,4 @@ class ComplexLayoutElements(SimpleLayoutElements):
         layout_menu_elements = super().create_layout_menu_elements()
         layout_menu_elements.append(chart_type_filter)
         return layout_menu_elements
+	
