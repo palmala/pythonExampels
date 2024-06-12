@@ -1,0 +1,27 @@
+[importlinter]
+root_package = my_project
+
+[importlinter:contract:1]
+name=Dog and cat can't import human
+type=forbidden
+source_modules=
+    my_project.dog
+    my_project.cat
+forbidden_modules=
+    my_project.human
+
+[importlinter:contract:3]
+name=Cat and dog are independent
+type=independence
+modules=
+    my_project.cat
+    my_project.dog
+
+[importlinter:contract:4]
+name=Only higher layers can import lower ones.
+type=layers
+layers=
+    my_project.city
+    my_project.district
+    my_project.building
+    
